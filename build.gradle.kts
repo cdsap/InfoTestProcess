@@ -34,7 +34,7 @@ gradlePlugin {
 pluginBundle {
     website = "https://github.com/cdsap/InfoTestProcess"
     vcsUrl = "https://github.com/cdsap/InfoTestProcess"
-    tags = listOf("kotlin", "process")
+    tags = listOf("test", "process")
 }
 
 publishing {
@@ -56,7 +56,7 @@ publishing {
                     connection.set("scm:git:git://github.com/cdsap/InfoTestProcess/")
                     url.set("https://github.com/cdsap/InfoTestProcess/")
                 }
-                name.set("InfoKotlinProcess")
+                name.set("InfoTestProcess")
                 url.set("https://github.com/cdsap/InfoTestProcess/")
                 description.set(
                     "Retrieve information of the Test process in your Build Scan or console"
