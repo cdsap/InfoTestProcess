@@ -20,18 +20,18 @@ buildscript {
     gradlePluginPortal()
   }
   dependencies {
-    classpath("io.github.cdsap:infotestprocess:0.1")
+    classpath("io.github.cdsap:testprocess:0.1")
   }
 }
 
-apply(plugin = "io.github.cdsap.infotestprocess")
+apply(plugin = "io.github.cdsap.testprocess")
 ```
 
 #### Groovy
 Using the plugins DSL:
 ``` groovy
 plugins {
-  id "io.github.cdsap.infotestprocess" version "0.1.1"
+  id "io.github.cdsap.testprocess" version "0.1"
 }
 
 ```
@@ -43,7 +43,7 @@ buildscript {
     gradlePluginPortal()
   }
   dependencies {
-    classpath "io.github.cdsap:infotestprocess:0.1.1"
+    classpath "io.github.cdsap:testprocess:0.1"
   }
 }
 
