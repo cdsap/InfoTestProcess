@@ -16,18 +16,17 @@ class InfoTestProcessPlugin : Plugin<Project> {
         target.allprojects {
             tasks.withType<Test>().configureEach {
                 addTestListener(object : TestListener {
-                    override fun beforeSuite(suite: TestDescriptor?) {}
-
-                    override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {
+                    override fun beforeSuite(suite: TestDescriptor?) {
                         if (suite?.name?.contains("Gradle Test Executor") == true) {
                             parseProcesses(rootDirPath, processes)
                         }
                     }
 
+                    override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}
+
                     override fun beforeTest(testDescriptor: TestDescriptor?) {}
 
                     override fun afterTest(testDescriptor: TestDescriptor?, result: TestResult?) {}
-
                 })
             }
         }
@@ -53,15 +52,6 @@ class InfoTestProcessPlugin : Plugin<Project> {
                         "Test-Process-pid-${it.key}",
                         "[${it.value.executor}, ${it.value.task}, ${it.value.max}]"
                     )
-                }
-
-                processes.entries.groupBy { it.value.task }.forEach {
-                    if (it.value.count() > 1) {
-                        buildScanExtension.value(
-                            "Test-Process-${it.key}",
-                            "crated ${it.value.count()} processes"
-                        )
-                    }
                 }
             }
         }
