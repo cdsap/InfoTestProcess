@@ -59,12 +59,12 @@ class ParseInfoProcessTest {
 
     @Test
     fun correctFormatParseTestProcess(){
-        val parseInfoProcess = ParseInfoProcess("PATH")
+        val parseInfoProcess = ParseInfoProcess("/home/runner/work/nowinandroid/nowinandroid")
         val info = """
             user: Optional[inakivillar],
             cmd: /.asdf/installs/java/liberica-11.0.15.1+2/bin/java,
             args: [-Djava.awt.headless=true,
-            -Dorg.gradle.internal.worker.tmpdir=PATH/feature/author/build/tmp/testProdReleaseUnitTest/work,
+            -Dorg.gradle.internal.worker.tmpdir=/home/runner/work/nowinandroid/nowinandroid/feature/author/build/tmp/testProdReleaseUnitTest/work,
             -Dorg.gradle.native=false, -javaagent:build/tmp/expandedArchives/org.jacoco.agent-0.8.7.jar_3a83c50b4a016f281c4e9f3500d16b55/jacocoagent.jar=destfile=build/jacoco/testProdReleaseUnitTest.exec,
             append=true,excludes=jdk.internal .*,inclnolocationclasses=true,dumponexit=true,
             output=file,jmx=false, @ /.gradle/.tmp/gradle-worker-classpath909835543043326786txt,

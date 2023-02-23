@@ -10,7 +10,7 @@ class ParseInfoProcess(private val rootDirPath: String) {
             val executor = processInfo.split("Gradle Test Executor ")[1].split("'")[0]
             val task = processInfo
                 .split("-Dorg.gradle.internal.worker.tmpdir=")[1].split(",")[0].replace("/build/tmp", "")
-                .replace("/work", "").replace(rootDirPath, "")
+                .replace(rootDirPath, "").replace("/work", "")
                 .replace("/", ":").split("\n")[0]
             val heap = processInfo.split("-Xmx")[1].split(",")[0]
             if (executor.isNotEmpty() && task.isNotEmpty() && heap.isNotEmpty()) {
