@@ -9,7 +9,7 @@ Apply the plugin in the main `build.gradle(.kts)` configuration file:
 Using the plugins DSL:
 ``` groovy
 plugins {
-  id("io.github.cdsap.testprocess") version "0.1.1"
+  id("io.github.cdsap.testprocess") version "0.1.2"
 }
 ```
 
@@ -20,7 +20,7 @@ buildscript {
     gradlePluginPortal()
   }
   dependencies {
-    classpath("io.github.cdsap:testprocess:0.1.1")
+    classpath("io.github.cdsap:testprocess:0.1.2")
   }
 }
 
@@ -31,7 +31,7 @@ apply(plugin = "io.github.cdsap.testprocess")
 Using the plugins DSL:
 ``` groovy
 plugins {
-  id "io.github.cdsap.testprocess" version "0.1.1"
+  id "io.github.cdsap.testprocess" version "0.1.2"
 }
 
 ```
@@ -43,7 +43,7 @@ buildscript {
     gradlePluginPortal()
   }
   dependencies {
-    classpath "io.github.cdsap:testprocess:0.1.1"
+    classpath "io.github.cdsap:testprocess:0.1.2"
   }
 }
 
@@ -51,14 +51,17 @@ apply plugin: "io.github.cdsap.testprocess"
 ```
 ## Output
 ### Build Scans
-If you are using Gradle Enterprise, the information about the Test processes will be included as custom value in the
-Build Scan:
+If you are using Gradle Enterprise, the information:
+* Total number of processes created
+* Processes by task
+* Information about the process
 
 ![](images/buildscan.png)
 
 
 ## Requirements
 * Gradle 7.5
+* Gradle Enterprise
 
 ## Libraries
 * com.gradle.enterprise:com.gradle.enterprise.gradle.plugin
