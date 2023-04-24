@@ -45,11 +45,16 @@ class InfoTestProcessPlugin : Plugin<Project> {
 
         buildScanExtension.buildFinished {
             if (processes.isNotEmpty()) {
-                buildScanExtension.value("Test-Process-Summary", "${processes.count()} processes created")
-
+                buildScanExtension.value("Test-Process", "${processes.count()} processes created")
+                processes.values.groupBy { it.task }.entries.map {
+                    buildScanExtension.value(
+                        "Test-Process-processes-by-task-${it.key}",
+                        "${it.value.count()}"
+                    )
+                }
                 processes.map {
                     buildScanExtension.value(
-                        "Test-Process-pid-${it.key}",
+                        "Test-Process-process-info-${it.key}",
                         "[${it.value.executor}, ${it.value.task}, ${it.value.max}]"
                     )
                 }
