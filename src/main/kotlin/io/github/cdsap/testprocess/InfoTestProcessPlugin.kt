@@ -1,6 +1,9 @@
 package io.github.cdsap.testprocess
 
 import com.gradle.scan.plugin.BuildScanExtension
+import io.github.cdsap.testprocess.model.Stats
+import io.github.cdsap.testprocess.model.TestProcess
+import io.github.cdsap.testprocess.report.BuildScanReport
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
@@ -8,23 +11,32 @@ import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.kotlin.dsl.withType
+import java.lang.RuntimeException
 
 class InfoTestProcessPlugin : Plugin<Project> {
+    val processes = mutableMapOf<Long, TestProcess>()
+    private val jstatResults = mutableMapOf<Long, String>()
+    private val commandExecutor = CommandExecutor()
+    val stats = Stats()
     override fun apply(target: Project) {
         val rootDirPath = target.rootDir.path.toString()
-        val processes = mutableMapOf<Long, TestProcess>()
         target.allprojects {
             tasks.withType<Test>().configureEach {
+                val testPath = this.path
                 addTestListener(object : TestListener {
                     override fun beforeSuite(suite: TestDescriptor?) {
-                        if (suite?.name?.contains("Gradle Test Executor") == true) {
-                            parseProcesses(rootDirPath, processes)
+
+                        if (isGradleExecutor(suite?.name)) {
+                            stats.totalProcesses++
+                            registerProcess(rootDirPath, processes)
                         }
                     }
 
                     override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}
 
-                    override fun beforeTest(testDescriptor: TestDescriptor?) {}
+                    override fun beforeTest(testDescriptor: TestDescriptor?) {
+                        parseProcessByTaskType(rootDirPath, testPath)
+                    }
 
                     override fun afterTest(testDescriptor: TestDescriptor?, result: TestResult?) {}
                 })
@@ -33,44 +45,45 @@ class InfoTestProcessPlugin : Plugin<Project> {
         target.gradle.rootProject {
             val buildScanExtension = extensions.findByType(com.gradle.scan.plugin.BuildScanExtension::class.java)
             if (buildScanExtension != null) {
-                buildScanReporting(buildScanExtension, processes)
+               BuildScanReport().buildScanReporting(buildScanExtension,processes,jstatResults,stats)
             }
         }
     }
 
-    private fun buildScanReporting(
-        buildScanExtension: BuildScanExtension,
-        processes: MutableMap<Long, TestProcess>
-    ) {
-
-        buildScanExtension.buildFinished {
-            if (processes.isNotEmpty()) {
-                buildScanExtension.value("Test-Process", "${processes.count()} processes created")
-                processes.values.groupBy { it.task }.entries.map {
-                    buildScanExtension.value(
-                        "Test-Process-processes-by-task-${it.key}",
-                        "${it.value.count()}"
-                    )
+    private fun parseProcessByTaskType(rootDirPath: String, testPath: String) {
+        try {
+            ProcessHandle.current().descendants()
+                .filter { isGradleExecutor(it.info().toString()) }
+                .filter { ParseInfoProcess(rootDirPath).getTask(it.info().toString()) == testPath }
+                .forEach {
+                    stats.jstatCalls++
+                    val a = commandExecutor.execute("jstat -gc -t  ${it.pid()}")
+                    if (!a.toString().contains("MonitorException")) {
+                        jstatResults[it.pid()] = a.toString()
+                    } else {
+                        stats.jstatErrors++
+                    }
                 }
-                processes.map {
-                    buildScanExtension.value(
-                        "Test-Process-process-info-${it.key}",
-                        "[${it.value.executor}, ${it.value.task}, ${it.value.max}]"
-                    )
-                }
-            }
+        } catch (e: RuntimeException) {
         }
     }
 
-    fun parseProcesses(rootDirPath: String, processes: MutableMap<Long, TestProcess>) {
-        val parseInfoProcess = ParseInfoProcess(rootDirPath)
-        ProcessHandle.current().descendants().forEach {
-            if (it.info().toString().contains("Gradle Test Executor") && !processes.containsKey(it.pid())) {
-                val process = parseInfoProcess.get(it.info().toString())
-                if (process != null) {
-                    processes[it.pid()] = process
+
+    fun registerProcess(rootDirPath: String, processes: MutableMap<Long, TestProcess>) {
+        try {
+            val parseInfoProcess = ParseInfoProcess(rootDirPath)
+            ProcessHandle.current().descendants().forEach {
+                if (isGradleExecutor(it.info().toString()) && !processes.containsKey(it.pid())) {
+                    val process = parseInfoProcess.get(it.info().toString())
+                    if (process != null) {
+                        processes[it.pid()] = process
+                    }
                 }
             }
+        } catch (e: RuntimeException) {
         }
     }
+
+    fun isGradleExecutor(name: String?): Boolean = name?.contains("Gradle Test Executor") ?: false
+
 }
