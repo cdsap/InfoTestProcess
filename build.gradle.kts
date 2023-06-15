@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "0.1.2"
+version = "0.1.3"
 
 java {
     toolchain {
@@ -42,7 +42,7 @@ publishing {
         create<MavenPublication>("testProcessPublication") {
             from(components["java"])
             artifactId = "testprocess"
-                versionMapping {
+            versionMapping {
                 usage("java-api") {
                     fromResolutionOf("runtimeClasspath")
                 }
