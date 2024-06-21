@@ -1,6 +1,6 @@
 package io.github.cdsap.testprocess
 
-import com.gradle.scan.plugin.BuildScanExtension
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.report.BuildScanReport
@@ -43,9 +43,13 @@ class InfoTestProcessPlugin : Plugin<Project> {
             }
         }
         target.gradle.rootProject {
+            val develocityConfiguration = extensions.findByType(DevelocityConfiguration::class.java)
             val buildScanExtension = extensions.findByType(com.gradle.scan.plugin.BuildScanExtension::class.java)
-            if (buildScanExtension != null) {
-               BuildScanReport().buildScanReporting(buildScanExtension,processes,jstatResults,stats)
+            if (develocityConfiguration != null) {
+                BuildScanReport().develocityBuildScanReporting(develocityConfiguration,processes,jstatResults,stats)
+            }
+            else if (buildScanExtension != null) {
+               BuildScanReport().gradleEnterpriseBuildScanReporting(buildScanExtension,processes,jstatResults,stats)
             }
         }
     }
