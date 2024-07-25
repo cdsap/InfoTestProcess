@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "0.1.3"
+version = "0.1.4"
 
 java {
     toolchain {
@@ -16,6 +16,7 @@ java {
 
 dependencies {
     implementation("com.gradle.enterprise:com.gradle.enterprise.gradle.plugin:3.12.3")
+    implementation("com.gradle:develocity-gradle-plugin:3.17.2")
     testImplementation("junit:junit:4.13.2")
 }
 
