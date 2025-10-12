@@ -1,24 +1,11 @@
 package io.github.cdsap.testprocess.report
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
-import com.gradle.scan.plugin.BuildScanExtension
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.parser.JstatParser
 
 class BuildScanReport {
-    fun gradleEnterpriseBuildScanReporting(
-        buildScanExtension: BuildScanExtension,
-        processes: MutableMap<Long, TestProcess>,
-        jstatResults: MutableMap<Long, String>,
-        stats: Stats
-    ) {
-        buildScanExtension.buildFinished {
-            val gradleEnterpriseValue = GradleEnterpriseValue(buildScanExtension)
-            extracted(processes, jstatResults, stats, gradleEnterpriseValue)
-        }
-    }
-
 
     fun develocityBuildScanReporting(
         develocityConfiguration: DevelocityConfiguration,

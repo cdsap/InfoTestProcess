@@ -44,12 +44,8 @@ class InfoTestProcessPlugin : Plugin<Project> {
         }
         target.gradle.rootProject {
             val develocityConfiguration = extensions.findByType(DevelocityConfiguration::class.java)
-            val buildScanExtension = extensions.findByType(com.gradle.scan.plugin.BuildScanExtension::class.java)
             if (develocityConfiguration != null) {
                 BuildScanReport().develocityBuildScanReporting(develocityConfiguration,processes,jstatResults,stats)
-            }
-            else if (buildScanExtension != null) {
-               BuildScanReport().gradleEnterpriseBuildScanReporting(buildScanExtension,processes,jstatResults,stats)
             }
         }
     }
