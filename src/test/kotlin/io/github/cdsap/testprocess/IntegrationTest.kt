@@ -22,14 +22,13 @@ class InfoTestProcessPluginTest {
         testProjectDir.newFile("settings.gradle").appendText(
             """
                 plugins {
-                    id 'com.gradle.enterprise' version '3.12.2'
+                    id 'com.gradle.develocity' version '4.1'
                 }
-                gradleEnterprise {
+                develocity {
                     server = "${System.getenv("GE_URL")}"
                     accessKey="${System.getenv("GE_API_KEY")}"
                     buildScan {
-                        capture { taskInputFiles = true }
-                        publishAlways()
+                       publishing { true }
                     }
                 }
             """.trimIndent()
