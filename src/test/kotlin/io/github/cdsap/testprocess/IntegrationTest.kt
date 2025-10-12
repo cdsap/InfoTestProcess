@@ -46,7 +46,7 @@ class InfoTestProcessPluginTest {
                 }
             """.trimIndent()
         )
-        listOf("7.5.1", "7.6", "8.0.1", "8.1.1", "8.3", "8.4").forEach {
+        listOf("8.14.3", "9.1.0").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments("test", "--configuration-cache")
