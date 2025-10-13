@@ -2,53 +2,20 @@
 Includes information about Test processes in the Build Scans.
 The plugin is compatible with configuration cache.
 
+> [!NOTE]
+> Since version 1.0.0 the plugin is applied in `settings.gradle(.kts)`
+
 ## Usage
-Apply the plugin in the main `build.gradle(.kts)` configuration file:
+Apply the plugin in the main `settings.gradle(.kts)` configuration file:
 
 #### Kotlin
 Using the plugins DSL:
 ``` groovy
 plugins {
-  id("io.github.cdsap.testprocess") version "0.1.4"
+  id("io.github.cdsap.testprocess") version "1.0.0"
 }
 ```
 
-Using legacy plugin application:
-``` groovy
-buildscript {
-  repositories {
-    gradlePluginPortal()
-  }
-  dependencies {
-    classpath("io.github.cdsap:testprocess:0.1.4")
-  }
-}
-
-apply(plugin = "io.github.cdsap.testprocess")
-```
-
-#### Groovy
-Using the plugins DSL:
-``` groovy
-plugins {
-  id "io.github.cdsap.testprocess" version "0.1.4"
-}
-
-```
-
-Using legacy plugin application:
-``` groovy
-buildscript {
-  repositories {
-    gradlePluginPortal()
-  }
-  dependencies {
-    classpath "io.github.cdsap:testprocess:0.1.4"
-  }
-}
-
-apply plugin: "io.github.cdsap.testprocess"
-```
 ## Output
 ### Build Scans
 If you are using Gradle Enterprise, the information:
@@ -60,8 +27,5 @@ If you are using Gradle Enterprise, the information:
 
 
 ## Requirements
-* Gradle 7.5
-* Gradle Enterprise
-
-## Libraries
-* com.gradle.enterprise:com.gradle.enterprise.gradle.plugin
+* Gradle 8
+* Develocity
