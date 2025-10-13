@@ -16,7 +16,6 @@ jobs:
               with:
                   distribution: temurin
                   java-version: 17
-
             - name: Execute Gradle build
               run:  ./gradlew test
               env:
