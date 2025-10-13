@@ -30,12 +30,13 @@ gradlePlugin {
     }
 }
 
-tasks.withType<Test>().configureEach {
-    javaLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
-        languageVersion = JavaLanguageVersion.of(17)
+afterEvaluate {
+    tasks.withType<Test>().configureEach {
+        javaLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
     }
 }
-
 
 pluginBundle {
     website = "https://github.com/cdsap/InfoTestProcess"
