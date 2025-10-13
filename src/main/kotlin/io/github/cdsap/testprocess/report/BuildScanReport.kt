@@ -1,30 +1,37 @@
 package io.github.cdsap.testprocess.report
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
+import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.parser.JstatParser
+import org.gradle.api.provider.Provider
 
-class BuildScanReport {
+class BuildScanReport : Report {
 
     fun develocityBuildScanReporting(
         develocityConfiguration: DevelocityConfiguration,
-        processes: MutableMap<Long, TestProcess>,
-        jstatResults: MutableMap<Long, String>,
-        stats: Stats
+        provider: Provider<PersistedState>
     ) {
         develocityConfiguration.buildScan {
+
             val develocityValue = DevelocityValue(this)
             buildFinished {
-                extracted(processes, jstatResults, stats, develocityValue)
+                if (provider.isPresent) {
+                    extracted(
+                        provider.get().processes,
+                        provider.get().jstatResults,
+                        provider.get().stats,
+                        develocityValue
+                    )
+                }
             }
         }
-
     }
 
-    private fun extracted(
-        processes: MutableMap<Long, TestProcess>,
-        jstatResults: MutableMap<Long, String>,
+    override fun extracted(
+        processes: Map<Long, TestProcess>,
+        jstatResults: Map<Long, String>,
         stats: Stats,
         buildScanData: BuildScanData
     ) {

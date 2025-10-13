@@ -3,10 +3,12 @@ plugins {
     `maven-publish`
     `kotlin-dsl`
     id("com.gradle.plugin-publish") version "1.0.0-rc-1"
+    kotlin("plugin.serialization") version "2.2.0"
+
 }
 
 group = "io.github.cdsap"
-version = "0.1.4"
+version = "1.0.0"
 
 java {
     toolchain {
@@ -16,6 +18,7 @@ java {
 
 dependencies {
     implementation("com.gradle:develocity-gradle-plugin:4.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     testImplementation("junit:junit:4.13.2")
 }
 
