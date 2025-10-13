@@ -33,6 +33,7 @@ class InfoTestProcessPluginTest {
                 }
             """.trimIndent()
         )
+        // disabling collect Fus metrics that fail with cc and KGP 2
         testProjectDir.newFile("gradle.properties").appendText(
             """
                 kotlin.internal.collectFUSMetrics=false
