@@ -14,15 +14,17 @@ class InfoTestProcessPluginTest {
 
     @Test
     fun testPluginIsCompatibleWithConfigurationCacheWithGradleEnterprise() {
-        assumeTrue(
-            "Gradle Enterprise URL and Access Key are set",
-            System.getenv("GE_URL") != null && System.getenv("GE_API_KEY") != null
-        )
+//        assumeTrue(
+//            "Gradle Enterprise URL and Access Key are set",
+//            System.getenv("GE_URL") != null && System.getenv("GE_API_KEY") != null
+//        )
 
         testProjectDir.newFile("settings.gradle").appendText(
             """
                 plugins {
                     id 'com.gradle.develocity' version '4.1'
+                    id 'io.github.cdsap.testprocess'
+
                 }
                 develocity {
                     server = "${System.getenv("GE_URL")}"
@@ -44,7 +46,6 @@ class InfoTestProcessPluginTest {
                 plugins {
                     id 'org.jetbrains.kotlin.jvm' version '2.2.0'
                     id 'application'
-                    id 'io.github.cdsap.testprocess'
                 }
                 repositories {
                     mavenCentral()
