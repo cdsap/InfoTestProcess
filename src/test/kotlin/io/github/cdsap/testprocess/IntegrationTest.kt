@@ -33,10 +33,15 @@ class InfoTestProcessPluginTest {
                 }
             """.trimIndent()
         )
+        testProjectDir.newFile("gradle.properties").appendText(
+            """
+                kotlin.internal.collectFUSMetrics=false
+            """.trimIndent()
+        )
         testProjectDir.newFile("build.gradle").appendText(
             """
                 plugins {
-                    id 'org.jetbrains.kotlin.jvm' version '1.7.21'
+                    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
                     id 'application'
                     id 'io.github.cdsap.testprocess'
                 }
