@@ -10,7 +10,7 @@ version = "0.1.4"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -26,14 +26,6 @@ gradlePlugin {
             displayName = "Info Test Processes"
             description = "Retrieve information of the Test processes after the build execution"
             implementationClass = "io.github.cdsap.testprocess.InfoTestProcessPlugin"
-        }
-    }
-}
-
-afterEvaluate {
-    tasks.withType<Test>().configureEach {
-        javaLauncher = extensions.getByType<org.gradle.jvm.toolchain.JavaToolchainService>().launcherFor {
-            languageVersion = JavaLanguageVersion.of(17)
         }
     }
 }
