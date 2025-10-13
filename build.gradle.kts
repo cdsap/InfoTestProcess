@@ -32,7 +32,7 @@ gradlePlugin {
 
 afterEvaluate {
     tasks.withType<Test>().configureEach {
-        javaLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
+        javaLauncher = extensions.getByType<org.gradle.jvm.toolchain.JavaToolchainService>().launcherFor {
             languageVersion = JavaLanguageVersion.of(17)
         }
     }
