@@ -1,8 +1,8 @@
 package io.github.cdsap.testprocess
 
 import junit.framework.TestCase.assertTrue
-import org.gradle.internal.impldep.org.junit.Assume.assumeTrue
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -33,10 +33,16 @@ class InfoTestProcessPluginTest {
                 }
             """.trimIndent()
         )
+        // disabling collect Fus metrics that fail with cc and KGP 2
+        testProjectDir.newFile("gradle.properties").appendText(
+            """
+                kotlin.internal.collectFUSMetrics=false
+            """.trimIndent()
+        )
         testProjectDir.newFile("build.gradle").appendText(
             """
                 plugins {
-                    id 'org.jetbrains.kotlin.jvm' version '1.7.21'
+                    id 'org.jetbrains.kotlin.jvm' version '2.2.0'
                     id 'application'
                     id 'io.github.cdsap.testprocess'
                 }
@@ -45,7 +51,7 @@ class InfoTestProcessPluginTest {
                 }
             """.trimIndent()
         )
-        listOf("7.5.1", "7.6", "8.0.1", "8.1.1", "8.3", "8.4").forEach {
+        listOf("8.14.3", "9.1.0").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments("test", "--configuration-cache")
