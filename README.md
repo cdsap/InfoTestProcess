@@ -12,7 +12,7 @@ Apply the plugin in the main `settings.gradle(.kts)` configuration file:
 Using the plugins DSL:
 ``` groovy
 plugins {
-  id("io.github.cdsap.testprocess") version "1.0.0"
+  id("io.github.cdsap.testprocess") version "1.0.1"
 }
 ```
 
