@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "1.0.1"
+version = "1.0.2-SNAPSHOT"
 
 java {
     toolchain {
@@ -17,7 +17,7 @@ java {
 }
 
 dependencies {
-    implementation("com.gradle:develocity-gradle-plugin:4.0.3")
+    compileOnly("com.gradle:develocity-gradle-plugin:4.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     testImplementation("junit:junit:4.13.2")
 }
