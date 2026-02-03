@@ -1,5 +1,5 @@
 # Info Test Process Plugin
-Includes information about Test processes in the Build Scans.
+Includes information about Test processes in the Build Scans®.
 The plugin is compatible with configuration cache.
 
 > [!NOTE]
@@ -17,8 +17,8 @@ plugins {
 ```
 
 ## Output
-### Build Scans
-If you are using Gradle Enterprise, the information:
+### Build Scans®
+If you are using Develocity, the information:
 * Total number of processes created
 * Processes by task
 * Information about the process
