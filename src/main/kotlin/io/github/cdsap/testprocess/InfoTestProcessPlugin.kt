@@ -20,14 +20,21 @@ class InfoTestProcessPlugin : Plugin<Settings> {
     val commandExecutor = CommandExecutor()
     override fun apply(target: Settings) {
         val rootDirPath = target.rootDir.path.toString()
-        val develocityConfiguration = target.extensions.findByType(DevelocityConfiguration::class.java)
+
+        val hasDevelocity = try {
+            Class.forName("com.gradle.develocity.agent.gradle.DevelocityConfiguration")
+            true
+        } catch (_: ClassNotFoundException) {
+            false
+        }
 
         val service = target.gradle.sharedServices.registerIfAbsent(
             "statsBuildService", StatsBuildService::class.java
         ) {
             parameters.path = target.providers.provider { File("${target.layout.rootDirectory}/statsTestTasks.txt") }
-            parameters.pathJson = target.providers.provider { File("${target.layout.rootDirectory}/statsTestTasks.json") }
-            parameters.develocity = target.providers.provider { develocityConfiguration != null }
+            parameters.pathJson =
+                target.providers.provider { File("${target.layout.rootDirectory}/statsTestTasks.json") }
+            parameters.develocity = target.providers.provider { hasDevelocity }
         }
 
         val provider = target.providers.of(PersistedDeserializationValueSource::class) {
@@ -59,8 +66,11 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             }
 
         }
-        if (develocityConfiguration != null) {
-            BuildScanReport().develocityBuildScanReporting(develocityConfiguration, provider)
+        if (hasDevelocity && target.extensions.findByType(DevelocityConfiguration::class.java) != null) {
+            BuildScanReport().develocityBuildScanReporting(
+                target.extensions.findByType(DevelocityConfiguration::class.java)!!,
+                provider
+            )
         }
     }
 
