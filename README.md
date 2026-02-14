@@ -29,3 +29,8 @@ If you are using Develocity, the information:
 ## Requirements
 * Gradle 8
 * Develocity
+
+---
+
+### Trademark Notice
+Gradle®, Develocity®, Build Scan®, and Gradle Enterprise® are registered trademarks of Gradle, Inc.
