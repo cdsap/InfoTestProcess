@@ -26,8 +26,5 @@
         "automergeType": "pr",
         "automergeStrategy": "merge-commit"
     }
-  ],
-  "extends": [
-    "config:base"
   ]
 }
