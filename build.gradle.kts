@@ -16,10 +16,39 @@ java {
     }
 }
 
+sourceSets {
+    create("agent") {
+        java.srcDir("src/agent/java")
+    }
+}
+
 dependencies {
     implementation("com.gradle:develocity-gradle-plugin:4.0.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
+}
+
+val agentJar = tasks.register<Jar>("agentJar") {
+    archiveBaseName.set("info-test-process-agent")
+    archiveVersion.set("")
+    from(sourceSets["agent"].output)
+    manifest {
+        attributes(
+            "Premain-Class" to "io.github.cdsap.testprocess.agent.WorkerRegistrarAgent",
+            "Can-Retransform-Classes" to "false",
+            "Can-Redefine-Classes" to "false"
+        )
+    }
+}
+
+// Route the agent jar through processResources so it ends up at
+// build/resources/main/META-INF/agent/info-test-process-agent.jar — that path is
+// included in both the final plugin jar AND the plugin classpath exposed by
+// GradleRunner.withPluginClasspath() to integration tests.
+tasks.named<ProcessResources>("processResources") {
+    from(agentJar.flatMap { it.archiveFile }) {
+        into("META-INF/agent")
+    }
 }
 
 gradlePlugin {

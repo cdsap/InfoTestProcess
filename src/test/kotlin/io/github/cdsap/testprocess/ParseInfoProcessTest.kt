@@ -6,74 +6,78 @@ class ParseInfoProcessTest {
 
     @Test
     fun emptyInfoReturnsNullTestProcess() {
-        val parseInfoProcess = ParseInfoProcess("")
-        assert(parseInfoProcess.get("") == null)
+        assert(ParseInfoProcess.get("") == null)
     }
 
     @Test
     fun missingHeapValueReturnsNullTestProcess() {
-        val parseInfoProcess = ParseInfoProcess("")
         val info = """
             user: Optional[inakivillar],
             cmd: /.asdf/installs/java/liberica-11.0.15.1+2/bin/java,
             args: [-Djava.awt.headless=true,
-            -Dorg.gradle.internal.worker.tmpdir=/nowinandroid/feature/author/build/tmp/testProdReleaseUnitTest/work,
-            -Dorg.gradle.native=false, -javaagent:build/tmp/expandedArchives/org.jacoco.agent-0.8.7.jar_3a83c50b4a016f281c4e9f3500d16b55/jacocoagent.jar=destfile=build/jacoco/testProdReleaseUnitTest.exec,
-            append=true,excludes=jdk.internal .*,inclnolocationclasses=true,dumponexit=true,
-            output=file,jmx=false, @ /.gradle/.tmp/gradle-worker-classpath909835543043326786txt,
+            -Dio.github.cdsap.testprocess.task=:feature:author:testProdReleaseUnitTest,
+            -Dorg.gradle.native=false,
             -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -ea, worker.org.gradle.process.internal .worker.GradleWorkerMain, 'Gradle Test Executor 76'], startTime: Optional[2023-01-31T17:34:53.024Z]
         """.trimIndent()
-        assert(parseInfoProcess.get(info) == null)
+        assert(ParseInfoProcess.get(info) == null)
     }
 
     @Test
     fun missingGradleTestExecutorReturnsNullTestProcess() {
-        val parseInfoProcess = ParseInfoProcess("")
         val info = """
             user: Optional[inakivillar],
             cmd: /.asdf/installs/java/liberica-11.0.15.1+2/bin/java,
             args: [-Djava.awt.headless=true,
-            -Dorg.gradle.internal.worker.tmpdir=/nowinandroid/feature/author/build/tmp/testProdReleaseUnitTest/work,
-            -Dorg.gradle.native=false, -javaagent:build/tmp/expandedArchives/org.jacoco.agent-0.8.7.jar_3a83c50b4a016f281c4e9f3500d16b55/jacocoagent.jar=destfile=build/jacoco/testProdReleaseUnitTest.exec,
-            append=true,excludes=jdk.internal .*,inclnolocationclasses=true,dumponexit=true,
-            output=file,jmx=false, @ /.gradle/.tmp/gradle-worker-classpath909835543043326786txt,
+            -Dio.github.cdsap.testprocess.task=:feature:author:testProdReleaseUnitTest,
+            -Dorg.gradle.native=false,
             -Xmx512m -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -ea, worker.org.gradle.process.internal .worker.GradleWorkerMain], startTime: Optional[2023-01-31T17:34:53.024Z]
         """.trimIndent()
-        assert(parseInfoProcess.get(info) == null)
+        assert(ParseInfoProcess.get(info) == null)
     }
 
     @Test
-    fun missingTmpDirReturnsNullTestProcess() {
-        val parseInfoProcess = ParseInfoProcess("")
+    fun missingTaskPropertyReturnsNullTestProcess() {
         val info = """
             user: Optional[inakivillar],
             cmd: /.asdf/installs/java/liberica-11.0.15.1+2/bin/java,
             args: [-Djava.awt.headless=true,
-            -Dorg.gradle.native=false, -javaagent:build/tmp/expandedArchives/org.jacoco.agent-0.8.7.jar_3a83c50b4a016f281c4e9f3500d16b55/jacocoagent.jar=destfile=build/jacoco/testProdReleaseUnitTest.exec,
-            append=true,excludes=jdk.internal .*,inclnolocationclasses=true,dumponexit=true,
-            output=file,jmx=false, @ /.gradle/.tmp/gradle-worker-classpath909835543043326786txt,
-            -Xmx512m -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -ea, worker.org.gradle.process.internal .worker.GradleWorkerMain], startTime: Optional[2023-01-31T17:34:53.024Z]
-        """.trimIndent()
-        assert(parseInfoProcess.get(info) == null)
-    }
-
-    @Test
-    fun correctFormatParseTestProcess(){
-        val parseInfoProcess = ParseInfoProcess("/home/runner/work/nowinandroid/nowinandroid")
-        val info = """
-            user: Optional[inakivillar],
-            cmd: /.asdf/installs/java/liberica-11.0.15.1+2/bin/java,
-            args: [-Djava.awt.headless=true,
-            -Dorg.gradle.internal.worker.tmpdir=/home/runner/work/nowinandroid/nowinandroid/feature/author/build/tmp/testProdReleaseUnitTest/work,
-            -Dorg.gradle.native=false, -javaagent:build/tmp/expandedArchives/org.jacoco.agent-0.8.7.jar_3a83c50b4a016f281c4e9f3500d16b55/jacocoagent.jar=destfile=build/jacoco/testProdReleaseUnitTest.exec,
-            append=true,excludes=jdk.internal .*,inclnolocationclasses=true,dumponexit=true,
-            output=file,jmx=false, @ /.gradle/.tmp/gradle-worker-classpath909835543043326786txt,
+            -Dorg.gradle.native=false,
             -Xmx512m, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -ea, worker.org.gradle.process.internal .worker.GradleWorkerMain, 'Gradle Test Executor 76'], startTime: Optional[2023-01-31T17:34:53.024Z]
         """.trimIndent()
-        val process = parseInfoProcess.get(info)
+        assert(ParseInfoProcess.get(info) == null)
+    }
+
+    @Test
+    fun correctFormatParseTestProcess() {
+        val info = """
+            user: Optional[inakivillar],
+            cmd: /.asdf/installs/java/liberica-11.0.15.1+2/bin/java,
+            args: [-Djava.awt.headless=true,
+            -Dio.github.cdsap.testprocess.task=:feature:author:testProdReleaseUnitTest,
+            -Dorg.gradle.native=false,
+            -Xmx512m, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant, -ea, worker.org.gradle.process.internal .worker.GradleWorkerMain, 'Gradle Test Executor 76'], startTime: Optional[2023-01-31T17:34:53.024Z]
+        """.trimIndent()
+        val process = ParseInfoProcess.get(info)
         assert(process?.max == "512m")
         assert(process?.executor == "Gradle Test Executor 76")
         assert(process?.task == ":feature:author:testProdReleaseUnitTest")
     }
-}
 
+    @Test
+    fun taskIdentityIsIndependentOfPathOverlap() {
+        // Two subprojects with overlapping path prefixes — the old tmpdir-parsing approach
+        // would conflate them. With the sentinel arg, identity is exact.
+        val infoA = """
+            args: [-Dio.github.cdsap.testprocess.task=:feature:author:test,
+            -Dorg.gradle.internal.worker.tmpdir=/build/feature/author/build/tmp/test/work,
+            -Xmx512m, 'Gradle Test Executor 1']
+        """.trimIndent()
+        val infoB = """
+            args: [-Dio.github.cdsap.testprocess.task=:feature:authorDetail:test,
+            -Dorg.gradle.internal.worker.tmpdir=/build/feature/authorDetail/build/tmp/test/work,
+            -Xmx512m, 'Gradle Test Executor 2']
+        """.trimIndent()
+        assert(ParseInfoProcess.getTask(infoA) == ":feature:author:test")
+        assert(ParseInfoProcess.getTask(infoB) == ":feature:authorDetail:test")
+    }
+}
