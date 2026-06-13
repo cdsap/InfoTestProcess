@@ -11,57 +11,73 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.kotlin.dsl.of
 import org.gradle.kotlin.dsl.withType
-import java.io.File
+import org.gradle.process.CommandLineArgumentProvider
 
 class InfoTestProcessPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
         val develocityConfiguration = target.extensions.findByType(DevelocityConfiguration::class.java)
-        // Compute paths only; do NOT touch the filesystem here — that would invalidate the
-        // configuration cache between runs. The directories are created lazily by the
-        // BuildService at execution time.
-        val workDir = File("${target.rootDir}/.info-test-process")
-        val agentJar = File(workDir, "agent.jar")
-        val registryDir = File(workDir, "workers")
 
-        val service = target.gradle.sharedServices.registerIfAbsent(
-            "statsBuildService", StatsBuildService::class.java
-        ) {
-            parameters.path = target.providers.provider { File("${target.layout.rootDirectory}/statsTestTasks.txt") }
-            parameters.pathJson = target.providers.provider { File("${target.layout.rootDirectory}/statsTestTasks.json") }
-            parameters.registryDir = target.providers.provider { registryDir }
-            parameters.agentJar = target.providers.provider { agentJar }
-            parameters.develocity = target.providers.provider { develocityConfiguration != null }
-        }
+        // Defer to the root Project so we can use ProjectLayout.getBuildDirectory()
+        // (https://docs.gradle.org/current/dsl/org.gradle.api.file.ProjectLayout.html) —
+        // a DirectoryProperty that respects any custom buildDirectory configuration and
+        // composes through the typed Directory / RegularFile / Provider API end-to-end.
+        // rootProject {} runs once after the root project is instantiated, before any
+        // project (including the root) is configured, so the service and the per-Test
+        // wiring are still in place before any test task is reached.
+        target.gradle.rootProject {
+            val workDir = layout.buildDirectory.dir("info-test-process")
+            val agentJar = workDir.map { it.file("agent.jar") }
+            val registryDir = workDir.map { it.dir("workers") }
+            val persistedTxt = workDir.map { it.file("statsTestTasks.txt") }
+            val persistedJson = workDir.map { it.file("statsTestTasks.json") }
 
-        val provider = target.providers.of(PersistedDeserializationValueSource::class) {
-            parameters.file.set(File("${target.layout.rootDirectory}/statsTestTasks.txt"))
-        }
-
-        target.gradle.beforeProject {
-            this.tasks.withType<Test>().configureEach {
-                usesService(service)
-                val testPath = this.path
-                jvmArgs("-D${ParseInfoProcess.TASK_PROPERTY}=$testPath")
-                jvmArgs("-javaagent:${agentJar.absolutePath}=${registryDir.absolutePath}")
-                doFirst {
-                    // Ensure the BuildService is initialized — its init block extracts the agent
-                    // jar and resets the registry directory before any worker forks.
-                    service.get()
-                }
-                addTestListener(object : TestListener {
-                    override fun beforeSuite(suite: TestDescriptor?) {
-                        if (isGradleExecutor(suite?.name)) {
-                            service.get().stats.totalProcesses++
-                        }
-                    }
-                    override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}
-                    override fun beforeTest(testDescriptor: TestDescriptor?) {}
-                    override fun afterTest(testDescriptor: TestDescriptor?, result: TestResult?) {}
-                })
+            val service = gradle.sharedServices.registerIfAbsent(
+                "statsBuildService", StatsBuildService::class.java
+            ) {
+                parameters.path = persistedTxt.map { it.asFile }
+                parameters.pathJson = persistedJson.map { it.asFile }
+                parameters.registryDir = registryDir.map { it.asFile }
+                parameters.agentJar = agentJar.map { it.asFile }
+                parameters.develocity = providers.provider { develocityConfiguration != null }
             }
-        }
-        if (develocityConfiguration != null) {
-            BuildScanReport().develocityBuildScanReporting(develocityConfiguration, provider)
+
+            val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
+                parameters.file.set(persistedTxt)
+            }
+            if (develocityConfiguration != null) {
+                BuildScanReport().develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
+            }
+
+            gradle.beforeProject {
+                tasks.withType<Test>().configureEach {
+                    usesService(service)
+                    val testPath = path
+                    // Use a CommandLineArgumentProvider so the paths resolve at task
+                    // execution time — after any custom buildDirectory configuration in
+                    // the root build script has been applied.
+                    jvmArgumentProviders.add(CommandLineArgumentProvider {
+                        listOf(
+                            "-D${ParseInfoProcess.TASK_PROPERTY}=$testPath",
+                            "-javaagent:${agentJar.get().asFile.absolutePath}=${registryDir.get().asFile.absolutePath}"
+                        )
+                    })
+                    doFirst {
+                        // Materializing the service forces its init block, which extracts
+                        // the agent jar and resets the registry directory before workers fork.
+                        service.get()
+                    }
+                    addTestListener(object : TestListener {
+                        override fun beforeSuite(suite: TestDescriptor?) {
+                            if (isGradleExecutor(suite?.name)) {
+                                service.get().stats.totalProcesses++
+                            }
+                        }
+                        override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}
+                        override fun beforeTest(testDescriptor: TestDescriptor?) {}
+                        override fun afterTest(testDescriptor: TestDescriptor?, result: TestResult?) {}
+                    })
+                }
+            }
         }
     }
 

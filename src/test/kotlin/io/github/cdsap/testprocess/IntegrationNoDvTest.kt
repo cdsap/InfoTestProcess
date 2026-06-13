@@ -74,7 +74,7 @@ class IntegrationNoDvTest {
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
-            val firstJson = File("${testProjectDir.root}/statsTestTasks.json")
+            val firstJson = File("${testProjectDir.root}/build/info-test-process/statsTestTasks.json")
             assertTrue(firstJson.exists())
             val body = firstJson.readText()
             assertTrue(body.contains("\"summary\""))
