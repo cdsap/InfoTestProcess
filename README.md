@@ -102,19 +102,66 @@ Categorical filters for fast slicing in DRV. Fired automatically when thresholds
 ### File output (no Develocity)
 
 Without Develocity, the same data is written to `${rootDir}/statsTestTasks.json` as
-a nested document:
+a single nested document with `summary` / `byTask` / `workers` / `tags`:
 
 ```json
 {
-  "summary":  { "workers": { "count": 17, ... }, "cpuCoresAvgMax": ..., ... },
-  "byTask":   { ":app:test": { "workers": 1, "cpuTimeSecSum": 0.55, ... }, ... },
-  "workers":  [ { "pid": ..., "task": "...", ... }, ... ],
-  "tags":     [ "tests:cpu-heavy" ]
+  "summary": {
+    "workers": {
+      "count": 1,
+      "tasksWith": 1,
+      "snapshotsMissing": 0
+    },
+    "cpuCoresAvgMax": 2.41,
+    "cpuTimeSecSum": 0.42,
+    "heapPeakGbMax": 0.02,
+    "metaspacePeakMbMax": 7.2,
+    "jitSecSum": 0.2,
+    "jitSecMax": 0.2,
+    "classesLoadedMax": 2711,
+    "gcCollectionsSum": 0,
+    "uptimeMinSum": 0.0
+  },
+  "byTask": {
+    ":test": {
+      "workers": 1,
+      "cpuCoresAvgMax": 2.41,
+      "cpuTimeSecSum": 0.42,
+      "heapPeakGbMax": 0.02,
+      "jitSecMax": 0.2,
+      "classesLoadedMax": 2711,
+      "peakThreadsMax": 9
+    }
+  },
+  "workers": [
+    {
+      "pid": 20910,
+      "task": ":test",
+      "executor": "Gradle Test Executor 24",
+      "xmx": "512m",
+      "uptimeMin": 0.0,
+      "cpuTimeSec": 0.42,
+      "cpuCoresAvg": 2.41,
+      "heapUsageGb": 0.02,
+      "heapPeakGb": 0.02,
+      "metaspacePeakMb": 7.2,
+      "gcType": "G1",
+      "gcCollections": 0,
+      "gcTimeSec": 0.0,
+      "jitSec": 0.2,
+      "classesLoaded": 2711,
+      "peakThreads": 9,
+      "statsSnapshotMissing": false
+    }
+  ],
+  "tags": []
 }
 ```
 
 `byTask` is intentionally *not* emitted on the scan — it's derivable from the per-PID
 values via DRV (see below) and would duplicate data against the per-scan value cap.
+It is included in the file output because the file isn't subject to scan limits and
+the precomputed summary aids local inspection.
 
 ## Querying from Develocity Analytics (DRV)
 
