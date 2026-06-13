@@ -26,3 +26,99 @@ jobs:
               env:
                   GE_URL: ${{ secrets.GE_URL }}
                   GE_API_KEY: ${{ secrets.GE_API_KEY }}
+
+    e2e-cc:
+        needs: prBranch
+        timeout-minutes: 30
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-java@v5
+              with:
+                  distribution: temurin
+                  java-version: 17
+            - name: Build Process Watcher
+              uses: cdsap/build-process-watcher@v0.6.1
+              with:
+                remote_monitoring: 'true'
+                export_to_bigquery: 'true'
+            - name: Publish plugin to mavenLocal
+              run: ./gradlew publishToMavenLocal
+            - name: First build — expect "Configuration cache entry stored"
+              working-directory: e2e/consumer
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  out=$(../../gradlew test --configuration-cache 2>&1)
+                  echo "$out"
+                  echo "$out" | grep -q "Configuration cache entry stored" \
+                      || { echo "::error::First build did not store CC"; exit 1; }
+            - name: Second build — expect "Configuration cache entry reused"
+              working-directory: e2e/consumer
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  out=$(../../gradlew test --configuration-cache 2>&1)
+                  echo "$out"
+                  echo "$out" | grep -q "Configuration cache entry reused" \
+                      || { echo "::error::Second build did not reuse CC"; exit 1; }
+            - name: Verify plugin produced agent + stats artifacts
+              working-directory: e2e/consumer
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  test -f .info-test-process/agent.jar \
+                      || { echo "::error::agent jar not extracted"; exit 1; }
+                  stats_files=$(ls .info-test-process/workers/*.stats.json 2>/dev/null | wc -l | tr -d ' ')
+                  [ "$stats_files" -ge 1 ] \
+                      || { echo "::error::no worker stats files produced"; exit 1; }
+                  identity_files=$(ls .info-test-process/workers/*.json 2>/dev/null | grep -v '\.stats\.json' | wc -l | tr -d ' ')
+                  [ "$identity_files" -eq "$stats_files" ] \
+                      || { echo "::error::identity ($identity_files) != stats ($stats_files) — orphans detected"; exit 1; }
+                  test -f statsTestTasks.json \
+                      || { echo "::error::statsTestTasks.json not generated"; exit 1; }
+                  for key in summary byTask workers tags; do
+                      grep -q "\"$key\"" statsTestTasks.json \
+                          || { echo "::error::statsTestTasks.json missing \"$key\""; exit 1; }
+                  done
+                  echo "OK — agent loaded $stats_files worker(s), identity/stats files balanced, output JSON contains summary/byTask/workers/tags"
+
+    e2e-isolated-projects:
+        needs: prBranch
+        timeout-minutes: 30
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-java@v5
+              with:
+                  distribution: temurin
+                  java-version: 17
+            - name: Build Process Watcher
+              uses: cdsap/build-process-watcher@v0.6.1
+              with:
+                remote_monitoring: 'true'
+                export_to_bigquery: 'true'
+            - name: Publish plugin to mavenLocal
+              run: ./gradlew publishToMavenLocal
+            - name: First build with Isolated Projects — store
+              working-directory: e2e/consumer
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  out=$(../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1)
+                  echo "$out"
+                  echo "$out" | grep -q "Configuration cache entry stored" \
+                      || { echo "::error::IP first build did not store CC"; exit 1; }
+            - name: Second build with Isolated Projects — reuse
+              working-directory: e2e/consumer
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  out=$(../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1)
+                  echo "$out"
+                  echo "$out" | grep -q "Configuration cache entry reused" \
+                      || { echo "::error::IP second build did not reuse CC"; exit 1; }

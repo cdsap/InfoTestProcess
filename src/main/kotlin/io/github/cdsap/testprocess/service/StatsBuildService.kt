@@ -1,5 +1,7 @@
 package io.github.cdsap.testprocess.service
 
+import io.github.cdsap.testprocess.agent.WorkerRegistry
+import io.github.cdsap.testprocess.agent.WorkerRuntimeStats
 import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
@@ -18,38 +20,46 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
     interface Parameters : BuildServiceParameters {
         var path: Provider<File>
         var pathJson: Provider<File>
+        var registryDir: Provider<File>
+        var agentJar: Provider<File>
         var develocity: Provider<Boolean>
     }
 
     val processes = mutableMapOf<Long, TestProcess>()
-    val jstatResults = mutableMapOf<Long, String>()
     val stats = Stats()
 
     init {
-        if (File(" ${parameters.path.get()}").exists()) {
-            File(" ${parameters.path.get()}").deleteRecursively()
-        }
+        // Prepare the agent + workers directory lazily on first task execution. Doing this
+        // at plugin-apply time would create filesystem entries before the configuration
+        // cache fingerprints, invalidating CC reuse across subsequent builds.
+        val registry = parameters.registryDir.get()
+        if (registry.exists()) registry.deleteRecursively()
+        registry.mkdirs()
+        val agent = parameters.agentJar.get()
+        agent.parentFile?.mkdirs()
+        WorkerRegistry.extractAgentJar(agent, javaClass.classLoader)
     }
 
     override fun close() {
-        if (parameters.develocity.get()) {
-            val json = Json { prettyPrint = false; ignoreUnknownKeys = true }
-            val payload = PersistedState(processes, jstatResults, stats)
-            val output = parameters.path.get()
-            output.parentFile.mkdirs()
-            output.writeText(json.encodeToString(PersistedState.serializer(), payload))
-        } else {
-            if (File(" ${parameters.pathJson.get()}").exists()) {
-                File(" ${parameters.path.get()}").deleteRecursively()
-            }
-            val outputJson = parameters.pathJson.get()
-            outputJson.parentFile.mkdirs()
-            OutputReport(outputJson).extracted(processes, jstatResults, stats, JsonValue())
-
+        val registry = parameters.registryDir.get()
+        WorkerRegistry.read(registry).forEach { entry ->
+            processes.putIfAbsent(entry.pid, entry.toTestProcess())
         }
+        val runtimeStats: Map<Long, WorkerRuntimeStats> = WorkerRegistry.readStats(registry).associateBy { it.pid }
+        stats.statsSnapshotsCaptured = runtimeStats.size
+        stats.statsSnapshotsMissing = processes.keys.count { it !in runtimeStats }
 
+        val payload = PersistedState(processes, runtimeStats, stats)
+        if (parameters.develocity.get()) {
+            val output = parameters.path.get()
+            output.parentFile?.mkdirs()
+            output.writeText(Json.encodeToString(PersistedState.serializer(), payload))
+        } else {
+            val outputJson = parameters.pathJson.get()
+            outputJson.parentFile?.mkdirs()
+            OutputReport(outputJson).extracted(processes, runtimeStats, stats, JsonValue())
+        }
     }
-
 
     override fun onFinish(event: FinishEvent?) {
     }

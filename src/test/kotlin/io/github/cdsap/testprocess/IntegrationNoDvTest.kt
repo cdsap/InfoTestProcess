@@ -76,7 +76,11 @@ class IntegrationNoDvTest {
                 .build()
             val firstJson = File("${testProjectDir.root}/statsTestTasks.json")
             assertTrue(firstJson.exists())
-            assertTrue(firstJson.readText().contains("Test-Process"))
+            val body = firstJson.readText()
+            assertTrue(body.contains("\"summary\""))
+            assertTrue(body.contains("\"byTask\""))
+            assertTrue(body.contains("\"workers\""))
+            assertTrue(body.contains("\"tags\""))
 
         }
     }
