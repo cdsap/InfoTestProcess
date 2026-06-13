@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "1.0.1"
+version = "2.0.0"
 
 java {
     toolchain {
