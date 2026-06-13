@@ -23,7 +23,7 @@ Apply the plugin in your main `settings.gradle(.kts)`:
 
 ```kotlin
 plugins {
-    id("io.github.cdsap.testprocess") version "1.0.1"
+    id("io.github.cdsap.testprocess") version "2.0.0"
 }
 ```
 
