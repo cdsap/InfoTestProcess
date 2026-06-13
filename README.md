@@ -23,7 +23,7 @@ Apply the plugin in your main `settings.gradle(.kts)`:
 
 ```kotlin
 plugins {
-    id("io.github.cdsap.testprocess") version "2.0.0"
+    id("io.github.cdsap.testprocess") version "2.1.0"
 }
 ```
 
@@ -101,8 +101,10 @@ Categorical filters for fast slicing in DRV. Fired automatically when thresholds
 
 ### File output (no Develocity)
 
-Without Develocity, the same data is written to `${rootDir}/statsTestTasks.json` as
-a single nested document with `summary` / `byTask` / `workers` / `tags`:
+Without Develocity, the same data is written to
+`${rootDir}/build/info-test-process/statsTestTasks.json` as a single nested document
+with `summary` / `byTask` / `workers` / `tags` (the file lives under `build/` so
+it's covered by every project's existing `.gitignore` and wiped by `./gradlew clean`):
 
 ```json
 {
