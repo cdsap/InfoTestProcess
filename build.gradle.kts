@@ -23,7 +23,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation("com.gradle:develocity-gradle-plugin:4.0.3")
+    implementation("com.gradle:develocity-gradle-plugin:4.4.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
 }
