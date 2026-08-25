@@ -12,7 +12,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v7
-            - uses: actions/setup-java@v5
+            - uses: actions/setup-java@v6
               with:
                   distribution: temurin
                   java-version: 17
@@ -37,7 +37,7 @@ jobs:
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v7
-            - uses: actions/setup-java@v5
+            - uses: actions/setup-java@v6
               with:
                   distribution: temurin
                   java-version: 17
@@ -53,18 +53,18 @@ jobs:
               shell: bash
               run: |
                   set -euo pipefail
-                  out=$(../../gradlew test --configuration-cache 2>&1)
-                  echo "$out"
-                  echo "$out" | grep -q "Configuration cache entry stored" \
+                  log="${RUNNER_TEMP:-/tmp}/cc-first.log"
+                  ../../gradlew test --configuration-cache 2>&1 | tee "$log"
+                  grep -q "Configuration cache entry stored" "$log" \
                       || { echo "::error::First build did not store CC"; exit 1; }
             - name: Second build — expect "Configuration cache entry reused"
               working-directory: e2e/consumer
               shell: bash
               run: |
                   set -euo pipefail
-                  out=$(../../gradlew test --configuration-cache 2>&1)
-                  echo "$out"
-                  echo "$out" | grep -q "Configuration cache entry reused" \
+                  log="${RUNNER_TEMP:-/tmp}/cc-second.log"
+                  ../../gradlew test --configuration-cache 2>&1 | tee "$log"
+                  grep -q "Configuration cache entry reused" "$log" \
                       || { echo "::error::Second build did not reuse CC"; exit 1; }
             - name: Verify plugin produced agent + stats artifacts
               working-directory: e2e/consumer
@@ -94,7 +94,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
-            - uses: actions/setup-java@v5
+            - uses: actions/setup-java@v6
               with:
                   distribution: temurin
                   java-version: 17
@@ -110,16 +110,16 @@ jobs:
               shell: bash
               run: |
                   set -euo pipefail
-                  out=$(../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1)
-                  echo "$out"
-                  echo "$out" | grep -q "Configuration cache entry stored" \
+                  log="${RUNNER_TEMP:-/tmp}/ip-first.log"
+                  ../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1 | tee "$log"
+                  grep -q "Configuration cache entry stored" "$log" \
                       || { echo "::error::IP first build did not store CC"; exit 1; }
             - name: Second build with Isolated Projects — reuse
               working-directory: e2e/consumer
               shell: bash
               run: |
                   set -euo pipefail
-                  out=$(../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1)
-                  echo "$out"
-                  echo "$out" | grep -q "Configuration cache entry reused" \
+                  log="${RUNNER_TEMP:-/tmp}/ip-second.log"
+                  ../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1 | tee "$log"
+                  grep -q "Configuration cache entry reused" "$log" \
                       || { echo "::error::IP second build did not reuse CC"; exit 1; }
