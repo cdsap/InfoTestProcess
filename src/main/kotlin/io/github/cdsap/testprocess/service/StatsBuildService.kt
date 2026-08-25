@@ -1,7 +1,7 @@
 package io.github.cdsap.testprocess.service
 
 import io.github.cdsap.testprocess.agent.WorkerRegistry
-import io.github.cdsap.testprocess.agent.WorkerRuntimeStats
+import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
@@ -42,14 +42,7 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
 
     override fun close() {
         val registry = parameters.registryDir.get()
-        WorkerRegistry.read(registry).forEach { entry ->
-            processes.putIfAbsent(entry.pid, entry.toTestProcess())
-        }
-        val runtimeStats: Map<Long, WorkerRuntimeStats> = WorkerRegistry.readStats(registry).associateBy { it.pid }
-        stats.statsSnapshotsCaptured = runtimeStats.size
-        stats.statsSnapshotsMissing = processes.keys.count { it !in runtimeStats }
-
-        val payload = PersistedState(processes, runtimeStats, stats)
+        val payload = WorkerStateCollector.collect(registry, processes, stats)
         if (parameters.develocity.get()) {
             val output = parameters.path.get()
             output.parentFile?.mkdirs()
@@ -57,7 +50,12 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
         } else {
             val outputJson = parameters.pathJson.get()
             outputJson.parentFile?.mkdirs()
-            OutputReport(outputJson).extracted(processes, runtimeStats, stats, JsonValue())
+            OutputReport(outputJson).extracted(
+                payload.processes,
+                payload.runtimeStats,
+                payload.stats,
+                JsonValue()
+            )
         }
     }
 
