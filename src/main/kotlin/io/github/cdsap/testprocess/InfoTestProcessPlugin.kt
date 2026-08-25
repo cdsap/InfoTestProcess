@@ -4,7 +4,11 @@ import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import io.github.cdsap.testprocess.report.BuildScanReport
 import io.github.cdsap.testprocess.service.StatsBuildService
 import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
@@ -17,13 +21,21 @@ class InfoTestProcessPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
         val develocityConfiguration = target.extensions.findByType(DevelocityConfiguration::class.java)
 
+        // Populated by the rootProject {} action below, which runs when the root project is
+        // instantiated — before any project (including the root) is configured, so the
+        // per-Test wiring is always in place before a test task is reached.
+        var wireProject: (Project) -> Unit = {}
+
+        // Registered from Settings scope, not from inside rootProject {}: Gradle.beforeProject
+        // is a Gradle-wide (cross-project) hook, and since Isolated Projects graduated to
+        // incubating in Gradle 9.7 reaching for it from a project fails the build with
+        // "Project ':' cannot access Gradle.beforeProject".
+        target.gradle.beforeProject { wireProject(this) }
+
         // Defer to the root Project so we can use ProjectLayout.getBuildDirectory()
         // (https://docs.gradle.org/current/dsl/org.gradle.api.file.ProjectLayout.html) —
         // a DirectoryProperty that respects any custom buildDirectory configuration and
         // composes through the typed Directory / RegularFile / Provider API end-to-end.
-        // rootProject {} runs once after the root project is instantiated, before any
-        // project (including the root) is configured, so the service and the per-Test
-        // wiring are still in place before any test task is reached.
         target.gradle.rootProject {
             val workDir = layout.buildDirectory.dir("info-test-process")
             val agentJar = workDir.map { it.file("agent.jar") }
@@ -48,36 +60,44 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                 BuildScanReport().develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
             }
 
-            gradle.beforeProject {
-                tasks.withType<Test>().configureEach {
-                    usesService(service)
-                    val testPath = path
-                    // Use a CommandLineArgumentProvider so the paths resolve at task
-                    // execution time — after any custom buildDirectory configuration in
-                    // the root build script has been applied.
-                    jvmArgumentProviders.add(CommandLineArgumentProvider {
-                        listOf(
-                            "-D${ParseInfoProcess.TASK_PROPERTY}=$testPath",
-                            "-javaagent:${agentJar.get().asFile.absolutePath}=${registryDir.get().asFile.absolutePath}"
-                        )
-                    })
-                    doFirst {
-                        // Materializing the service forces its init block, which extracts
-                        // the agent jar and resets the registry directory before workers fork.
-                        service.get()
-                    }
-                    addTestListener(object : TestListener {
-                        override fun beforeSuite(suite: TestDescriptor?) {
-                            if (isGradleExecutor(suite?.name)) {
-                                service.get().stats.totalProcesses++
-                            }
-                        }
-                        override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}
-                        override fun beforeTest(testDescriptor: TestDescriptor?) {}
-                        override fun afterTest(testDescriptor: TestDescriptor?, result: TestResult?) {}
-                    })
-                }
+            wireProject = { project ->
+                project.configureTestTasks(service, agentJar, registryDir)
             }
+        }
+    }
+
+    private fun Project.configureTestTasks(
+        service: Provider<StatsBuildService>,
+        agentJar: Provider<RegularFile>,
+        registryDir: Provider<Directory>
+    ) {
+        tasks.withType<Test>().configureEach {
+            usesService(service)
+            val testPath = path
+            // Use a CommandLineArgumentProvider so the paths resolve at task
+            // execution time — after any custom buildDirectory configuration in
+            // the root build script has been applied.
+            jvmArgumentProviders.add(CommandLineArgumentProvider {
+                listOf(
+                    "-D${ParseInfoProcess.TASK_PROPERTY}=$testPath",
+                    "-javaagent:${agentJar.get().asFile.absolutePath}=${registryDir.get().asFile.absolutePath}"
+                )
+            })
+            doFirst {
+                // Materializing the service forces its init block, which extracts
+                // the agent jar and resets the registry directory before workers fork.
+                service.get()
+            }
+            addTestListener(object : TestListener {
+                override fun beforeSuite(suite: TestDescriptor?) {
+                    if (isGradleExecutor(suite?.name)) {
+                        service.get().stats.totalProcesses++
+                    }
+                }
+                override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}
+                override fun beforeTest(testDescriptor: TestDescriptor?) {}
+                override fun afterTest(testDescriptor: TestDescriptor?, result: TestResult?) {}
+            })
         }
     }
 
