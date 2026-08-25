@@ -32,9 +32,10 @@ class BuildScanReport : Report {
     ) {
         if (processes.isEmpty()) return
 
-        val workers = processes.map { (pid, proc) -> ReportJson.workerInfo(proc, runtimeStats[pid], pid) }
-        val summary = Aggregator.summary(workers, stats)
-        val tags = Aggregator.tags(workers, stats)
+        val report = ReportDocument.from(processes, runtimeStats, stats)
+        val workers = report.workers
+        val summary = report.summary
+        val tags = report.tags
 
         // Flat numeric metrics — DRV indexes these as scalar columns.
         buildScanData.value("testProcess.workers.count", summary.workers.count.toString())

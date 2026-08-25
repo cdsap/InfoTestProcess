@@ -15,6 +15,34 @@ interface Report {
     )
 }
 
+/**
+ * Shared report-domain projection from persisted worker state. Output adapters
+ * (Build Scan, JSON file) consume this instead of rebuilding workers / summary /
+ * byTask / tags themselves.
+ */
+internal data class ReportDocument(
+    val workers: List<WorkerProcessInfo>,
+    val summary: TestProcessSummary,
+    val byTask: Map<String, TaskSummary>,
+    val tags: List<String>
+) {
+    companion object {
+        fun from(
+            processes: Map<Long, TestProcess>,
+            runtimeStats: Map<Long, WorkerRuntimeStats>,
+            stats: Stats
+        ): ReportDocument {
+            val workers = processes.map { (pid, proc) -> ReportJson.workerInfo(proc, runtimeStats[pid], pid) }
+            return ReportDocument(
+                workers = workers,
+                summary = Aggregator.summary(workers, stats),
+                byTask = Aggregator.byTask(workers),
+                tags = Aggregator.tags(workers, stats)
+            )
+        }
+    }
+}
+
 @Serializable
 data class WorkerProcessInfo(
     val pid: Long,
