@@ -26,12 +26,12 @@ class OutputReport(val outputJson: File) : Report {
             outputJson.writeText("{}")
             return
         }
-        val workers = processes.map { (pid, proc) -> ReportJson.workerInfo(proc, runtimeStats[pid], pid) }
+        val report = ReportDocument.from(processes, runtimeStats, stats)
         val doc = OutputDocument(
-            summary = Aggregator.summary(workers, stats),
-            byTask = Aggregator.byTask(workers),
-            workers = workers,
-            tags = Aggregator.tags(workers, stats)
+            summary = report.summary,
+            byTask = report.byTask,
+            workers = report.workers,
+            tags = report.tags
         )
         outputJson.writeText(ReportJson.prettyJson.encodeToString(OutputDocument.serializer(), doc))
     }

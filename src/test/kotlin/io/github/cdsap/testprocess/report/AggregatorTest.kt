@@ -1,6 +1,8 @@
 package io.github.cdsap.testprocess.report
 
+import io.github.cdsap.testprocess.agent.WorkerRuntimeStats
 import io.github.cdsap.testprocess.model.Stats
+import io.github.cdsap.testprocess.model.TestProcess
 import org.junit.Test
 
 class AggregatorTest {
@@ -22,6 +24,70 @@ class AggregatorTest {
         jitSec = jitSec, classesLoaded = 3000L, peakThreads = 9,
         statsSnapshotMissing = statsSnapshotMissing
     )
+
+    @Test
+    fun reportDocumentFromComputesWorkersSummaryByTaskAndTags() {
+        val processes = mapOf(
+            10L to TestProcess(task = ":a:test", executor = "E1", max = "512m"),
+            20L to TestProcess(task = ":a:test", executor = "E2", max = "512m"),
+            30L to TestProcess(task = ":b:test", executor = "E3", max = "1g")
+        )
+        // Worker 10: hot CPU → cpu-heavy tag; worker 20: missing snapshot; worker 30: live, cooler.
+        val runtimeStats = mapOf(
+            10L to WorkerRuntimeStats(
+                pid = 10L,
+                uptimeMs = 10_000,
+                cpuTimeMs = 50_000, // 5.0 cores avg
+                usedHeapBytes = 100_000_000,
+                peakHeapBytes = 200_000_000,
+                peakMetaspaceBytes = 50_000_000,
+                maxHeapBytes = 536_870_912,
+                gcCollections = 4,
+                gcTimeMs = 120,
+                gcType = "G1",
+                jitTimeMs = 850,
+                classesLoaded = 4_823,
+                peakThreads = 18
+            ),
+            30L to WorkerRuntimeStats(
+                pid = 30L,
+                uptimeMs = 20_000,
+                cpuTimeMs = 2_000, // 0.1 cores avg
+                usedHeapBytes = 50_000_000,
+                peakHeapBytes = 80_000_000,
+                peakMetaspaceBytes = 20_000_000,
+                maxHeapBytes = 1_073_741_824,
+                gcCollections = 1,
+                gcTimeMs = 10,
+                gcType = "G1",
+                jitTimeMs = 100,
+                classesLoaded = 1_000,
+                peakThreads = 8
+            )
+        )
+        val stats = Stats(statsSnapshotsMissing = 1)
+
+        val report = ReportDocument.from(processes, runtimeStats, stats)
+
+        assert(report.workers.size == 3)
+        assert(report.workers.map { it.pid }.toSet() == setOf(10L, 20L, 30L))
+        val missing = report.workers.single { it.pid == 20L }
+        assert(missing.statsSnapshotMissing)
+        assert(missing.task == ":a:test")
+
+        assert(report.summary.workers.count == 3)
+        assert(report.summary.workers.tasksWith == 2)
+        assert(report.summary.workers.snapshotsMissing == 1)
+        assert(report.summary.cpuCoresAvgMax == 5.0)
+
+        // byTask only includes workers with a live stats snapshot
+        assert(report.byTask.keys == setOf(":a:test", ":b:test"))
+        assert(report.byTask[":a:test"]!!.workers == 1)
+        assert(report.byTask[":b:test"]!!.workers == 1)
+
+        assert(report.tags.contains("tests:cpu-heavy"))
+        assert(report.tags.contains("tests:no-snapshot"))
+    }
 
     @Test
     fun summaryComputesMaxesAndSums() {
