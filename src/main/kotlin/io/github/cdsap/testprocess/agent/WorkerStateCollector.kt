@@ -3,6 +3,7 @@ package io.github.cdsap.testprocess.agent
 import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
+import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import java.io.File
 
 object WorkerStateCollector {

@@ -1,10 +1,10 @@
 package io.github.cdsap.testprocess.report
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
-import io.github.cdsap.testprocess.agent.WorkerRuntimeStats
 import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
+import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import org.gradle.api.provider.Provider
 
 class BuildScanReport : Report {
