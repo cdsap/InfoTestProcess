@@ -1,5 +1,6 @@
 package io.github.cdsap.testprocess.agent
 
+import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -88,8 +89,27 @@ class WorkerRegistryTest {
             """{"pid":2,"uptimeMs":5000,"usedHeapBytes":1024,"maxHeapBytes":2048,"gcCollections":1,"gcTimeMs":10,"gcType":"PARALLEL"}"""
         )
         val s = WorkerRegistry.readStats(dir).single()
+        assert(WorkerRuntimeStats::class.java.`package`.name == "io.github.cdsap.testprocess.model")
         assert(s.cpuTimeMs == -1L)
         assert(s.jitTimeMs == -1L)
+        assert(s.classesLoaded == -1L)
         assert(s.peakThreads == -1)
+        assert(s.uptimeMs == 5000L)
+        assert(s.usedHeapBytes == 1024L)
+        assert(s.peakHeapBytes == 0L)
+        assert(s.peakMetaspaceBytes == 0L)
+        assert(s.gcType == "PARALLEL")
+    }
+
+    @Test
+    fun statsReaderIgnoresMalformedStatsFiles() {
+        val dir = tmp.newFolder("workers")
+        File(dir, "bad.stats.json").writeText("{not json")
+        File(dir, "3.stats.json").writeText(
+            """{"pid":3,"uptimeMs":1000,"cpuTimeMs":100,"usedHeapBytes":1,"peakHeapBytes":2,"peakMetaspaceBytes":3,"maxHeapBytes":4,"gcCollections":0,"gcTimeMs":0,"gcType":"G1","jitTimeMs":1,"classesLoaded":2,"peakThreads":3}"""
+        )
+        val stats = WorkerRegistry.readStats(dir)
+        assert(stats.size == 1)
+        assert(stats.single().pid == 3L)
     }
 }

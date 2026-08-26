@@ -1,8 +1,8 @@
 package io.github.cdsap.testprocess.report
 
-import io.github.cdsap.testprocess.agent.WorkerRuntimeStats
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
+import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import kotlinx.serialization.Serializable
 import java.io.File
 

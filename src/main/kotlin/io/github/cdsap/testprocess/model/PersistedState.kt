@@ -1,6 +1,5 @@
 package io.github.cdsap.testprocess.model
 
-import io.github.cdsap.testprocess.agent.WorkerRuntimeStats
 import kotlinx.serialization.Serializable
 
 @Serializable
