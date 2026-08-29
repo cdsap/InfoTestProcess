@@ -16,6 +16,19 @@ interface Report {
 }
 
 /**
+ * Shared report-ready worker view: projects collected process + runtime-stats
+ * maps into [WorkerProcessInfo] so Build Scan and file adapters share one
+ * behavior-preserving conversion (including missing-snapshot handling).
+ */
+internal object WorkerReportInput {
+    fun from(
+        processes: Map<Long, TestProcess>,
+        runtimeStats: Map<Long, WorkerRuntimeStats>
+    ): List<WorkerProcessInfo> =
+        processes.map { (pid, proc) -> ReportJson.workerInfo(proc, runtimeStats[pid], pid) }
+}
+
+/**
  * Shared report-domain projection from persisted worker state. Output adapters
  * (Build Scan, JSON file) consume this instead of rebuilding workers / summary /
  * byTask / tags themselves.
@@ -32,7 +45,7 @@ internal data class ReportDocument(
             runtimeStats: Map<Long, WorkerRuntimeStats>,
             stats: Stats
         ): ReportDocument {
-            val workers = processes.map { (pid, proc) -> ReportJson.workerInfo(proc, runtimeStats[pid], pid) }
+            val workers = WorkerReportInput.from(processes, runtimeStats)
             return ReportDocument(
                 workers = workers,
                 summary = Aggregator.summary(workers, stats),
