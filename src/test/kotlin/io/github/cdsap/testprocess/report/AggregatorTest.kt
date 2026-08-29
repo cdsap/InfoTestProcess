@@ -26,6 +26,58 @@ class AggregatorTest {
     )
 
     @Test
+    fun workerReportInputProjectsWorkersIncludingMissingRuntimeStats() {
+        val processes = mapOf(
+            10L to TestProcess(task = ":a:test", executor = "E1", max = "512m"),
+            20L to TestProcess(task = ":b:test", executor = "E2", max = "1g")
+        )
+        val runtimeStats = mapOf(
+            10L to WorkerRuntimeStats(
+                pid = 10L,
+                uptimeMs = 60_000,
+                cpuTimeMs = 30_000,
+                usedHeapBytes = 100_000_000,
+                peakHeapBytes = 200_000_000,
+                peakMetaspaceBytes = 50_000_000,
+                maxHeapBytes = 536_870_912,
+                gcCollections = 2,
+                gcTimeMs = 50,
+                gcType = "G1",
+                jitTimeMs = 400,
+                classesLoaded = 2_500,
+                peakThreads = 12
+            )
+            // pid 20 intentionally omitted → missing snapshot
+        )
+
+        val workers = WorkerReportInput.from(processes, runtimeStats)
+
+        assert(workers.size == 2)
+        val live = workers.single { it.pid == 10L }
+        assert(!live.statsSnapshotMissing)
+        assert(live.task == ":a:test")
+        assert(live.executor == "E1")
+        assert(live.xmx == "512m")
+        assert(live.uptimeMin == 1.0)
+        assert(live.cpuTimeSec == 30.0)
+        assert(live.gcType == "G1")
+
+        val missing = workers.single { it.pid == 20L }
+        assert(missing.statsSnapshotMissing)
+        assert(missing.task == ":b:test")
+        assert(missing.executor == "E2")
+        assert(missing.xmx == "1g")
+        assert(missing.uptimeMin == 0.0)
+        assert(missing.cpuTimeSec == 0.0)
+        assert(missing.cpuCoresAvg == 0.0)
+        assert(missing.heapPeakGb == 0.0)
+        assert(missing.gcType == "Unknown")
+        assert(missing.gcCollections == 0L)
+        assert(missing.classesLoaded == -1L)
+        assert(missing.peakThreads == -1)
+    }
+
+    @Test
     fun reportDocumentFromComputesWorkersSummaryByTaskAndTags() {
         val processes = mapOf(
             10L to TestProcess(task = ":a:test", executor = "E1", max = "512m"),
