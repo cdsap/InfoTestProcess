@@ -24,8 +24,16 @@ class WorkerRegistryTest {
         assert(entries.size == 2)
         assert(entries[0].pid == 12345L)
         assert(entries[0].task == ":app:test")
-        assert(entries[0].toTestProcess().max == "512m")
-        assert(entries[1].toTestProcess().max == "1g")
+        assert(entries[0].executor == "Gradle Test Executor 1")
+        assert(entries[0].maxHeapBytes == 536870912L)
+        assert(entries[0].startMs == 1700000000000L)
+        assert(entries[0].args == listOf("-Xmx512m", "-Dio.github.cdsap.testprocess.task=:app:test"))
+        assert(entries[1].pid == 67890L)
+        assert(entries[1].task == ":lib:test")
+        assert(entries[1].executor == "Gradle Test Executor 2")
+        assert(entries[1].maxHeapBytes == 1073741824L)
+        assert(entries[1].startMs == 1700000000001L)
+        assert(entries[1].args == listOf("-Xmx1g"))
     }
 
     @Test
@@ -41,13 +49,15 @@ class WorkerRegistryTest {
     }
 
     @Test
-    fun missingExecutorFallsBackToPidLabel() {
+    fun readsMissingExecutorAsEmptyString() {
         val dir = tmp.newFolder("workers")
         File(dir, "7.json").writeText(
             """{"pid":7,"task":":a:test","maxHeapBytes":268435456,"startMs":1,"args":[]}"""
         )
         val entries = WorkerRegistry.read(dir)
-        assert(entries.single().toTestProcess().executor == "Gradle Test Executor pid-7")
+        assert(entries.single().pid == 7L)
+        assert(entries.single().executor == "")
+        assert(entries.single().maxHeapBytes == 268435456L)
     }
 
     @Test

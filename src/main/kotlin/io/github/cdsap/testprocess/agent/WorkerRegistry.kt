@@ -1,6 +1,5 @@
 package io.github.cdsap.testprocess.agent
 
-import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,20 +13,7 @@ data class WorkerRegistryEntry(
     val maxHeapBytes: Long = 0,
     val startMs: Long = 0,
     val args: List<String> = emptyList()
-) {
-    fun toTestProcess(): TestProcess = TestProcess(
-        task = task,
-        executor = if (executor.isNotEmpty()) executor else "Gradle Test Executor pid-$pid",
-        max = formatHeap(maxHeapBytes)
-    )
-
-    private fun formatHeap(bytes: Long): String = when {
-        bytes <= 0 -> ""
-        bytes % (1024L * 1024 * 1024) == 0L -> "${bytes / (1024L * 1024 * 1024)}g"
-        bytes >= 1024L * 1024 -> "${bytes / (1024L * 1024)}m"
-        else -> "${bytes}b"
-    }
-}
+)
 
 object WorkerRegistry {
     private val json = Json { ignoreUnknownKeys = true }

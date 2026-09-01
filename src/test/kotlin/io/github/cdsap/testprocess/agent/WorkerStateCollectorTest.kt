@@ -63,4 +63,23 @@ class WorkerStateCollectorTest {
         assert(stats.statsSnapshotsCaptured == 0)
         assert(stats.statsSnapshotsMissing == 1)
     }
+
+    @Test
+    fun mapsHeapBytesAndMissingExecutorFallback() {
+        val dir = tmp.newFolder("workers")
+        File(dir, "7.json").writeText(
+            """{"pid":7,"task":":a:test","maxHeapBytes":536870912,"startMs":1,"args":[]}"""
+        )
+        File(dir, "8.json").writeText(
+            """{"pid":8,"task":":b:test","executor":"Gradle Test Executor 2","maxHeapBytes":1073741824,"startMs":2,"args":[]}"""
+        )
+
+        val processes = mutableMapOf<Long, TestProcess>()
+        val state = WorkerStateCollector.collect(dir, processes, Stats())
+
+        assert(state.processes[7L]?.executor == "Gradle Test Executor pid-7")
+        assert(state.processes[7L]?.max == "512m")
+        assert(state.processes[8L]?.executor == "Gradle Test Executor 2")
+        assert(state.processes[8L]?.max == "1g")
+    }
 }
