@@ -13,7 +13,7 @@ object WorkerStateCollector {
         stats: Stats
     ): PersistedState {
         WorkerRegistry.read(registryDir).forEach { entry ->
-            processes.putIfAbsent(entry.pid, entry.toTestProcess())
+            processes.putIfAbsent(entry.pid, WorkerIdentityMapper.toTestProcess(entry))
         }
         val runtimeStats: Map<Long, WorkerRuntimeStats> =
             WorkerRegistry.readStats(registryDir).associateBy { it.pid }
