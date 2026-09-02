@@ -1,9 +1,7 @@
 package io.github.cdsap.testprocess
 
 import junit.framework.TestCase.assertTrue
-import org.gradle.kotlin.dsl.accessors.runtime.addDependencyTo
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -15,22 +13,24 @@ class IntegrationNoDvTest {
     val testProjectDir = TemporaryFolder()
 
     @Test
-    fun testPluginIsCompatibleWithConfigurationCacheWithGradleEnterprise() {
-
+    fun testPluginIsCompatibleWithConfigurationCache() {
+        // Proves Portal compatibility.features.configurationCache = true:
+        // representative task twice with CC enabled, second run must be a HIT,
+        // and --configuration-cache-problems=fail ensures no CC problems.
         createProject()
 
+        val ccArgs = listOf("test", "--configuration-cache", "--configuration-cache-problems=fail")
         listOf("8.14.3", "9.1.0", "9.7.1").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("test", "--configuration-cache")
+                .withArguments(ccArgs)
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
 
-
             val secondBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("test", "--configuration-cache")
+                .withArguments(ccArgs)
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()

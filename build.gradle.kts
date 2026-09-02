@@ -1,8 +1,10 @@
+import org.gradle.plugin.compatibility.compatibility
+
 plugins {
     `java-gradle-plugin`
     `maven-publish`
     `kotlin-dsl`
-    id("com.gradle.plugin-publish") version "1.0.0-rc-1"
+    id("com.gradle.plugin-publish") version "2.1.1"
     kotlin("plugin.serialization") version "2.4.10"
 
 }
@@ -52,20 +54,23 @@ tasks.named<ProcessResources>("processResources") {
 }
 
 gradlePlugin {
+    website.set("https://github.com/cdsap/InfoTestProcess")
+    vcsUrl.set("https://github.com/cdsap/InfoTestProcess")
     plugins {
         create("InfoTestProcessPlugin") {
             id = "io.github.cdsap.testprocess"
             displayName = "Info Test Processes"
             description = "Retrieve information of the Test processes after the build execution"
             implementationClass = "io.github.cdsap.testprocess.InfoTestProcessPlugin"
+            tags.set(listOf("test", "process"))
+            // Proven by IntegrationNoDvTest / e2e-cc (store then HIT with --configuration-cache).
+            compatibility {
+                features {
+                    configurationCache = true
+                }
+            }
         }
     }
-}
-
-pluginBundle {
-    website = "https://github.com/cdsap/InfoTestProcess"
-    vcsUrl = "https://github.com/cdsap/InfoTestProcess"
-    tags = listOf("test", "process")
 }
 
 publishing {
