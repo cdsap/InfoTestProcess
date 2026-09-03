@@ -57,7 +57,12 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                 parameters.file.set(persistedTxt)
             }
             if (develocityConfiguration != null) {
-                BuildScanReport().develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
+                val publishGbosToDevelocity = providers.gradleProperty("infoTestProcess.gbos.develocity.enabled")
+                    .map { it.toBoolean() }
+                    .orElse(false)
+                    .get()
+                BuildScanReport(publishGbosToDevelocity)
+                    .develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
             }
 
             wireProject = { project ->

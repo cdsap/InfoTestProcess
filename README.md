@@ -88,6 +88,23 @@ the heaviest workers by `cpuTimeSec` are kept and the plugin emits
 `testProcess.worker.truncated=true` plus `testProcess.worker.total=<count>` so you
 know data was dropped.
 
+#### Optional GBOS projection
+
+Set `infoTestProcess.gbos.develocity.enabled=true` in `gradle.properties` to also
+publish the opt-in GBOS Develocity projection during same-major adoption. Legacy
+`testProcess.*` custom values and scan tags remain unchanged.
+
+The projection emits canonical observations as repeated `gbos.v1.observation`
+custom values. Any PID, task path, or test executor identity is stored inside the
+observation JSON attributes, not in custom-value names. It also emits only the
+allowlisted build-level scalar indexes:
+
+| Key | Source measurement |
+|---|---|
+| `gbos.v1.index.info_test_process.jvm.process.cpu.cores.max` | `jvm.process.cpu.cores` / `max` |
+| `gbos.v1.index.info_test_process.jvm.process.cpu.time.sum` | `jvm.process.cpu.time` / `sum` |
+| `gbos.v1.index.info_test_process.jvm.process.memory.heap.peak.max` | `jvm.process.memory.heap.peak` / `max` |
+
 #### Scan tags
 
 Categorical filters for fast slicing in DRV. Fired automatically when thresholds hit:
