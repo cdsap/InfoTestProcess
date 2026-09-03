@@ -7,7 +7,9 @@ import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import org.gradle.api.provider.Provider
 
-class BuildScanReport : Report {
+class BuildScanReport(
+    private val publishGbos: Boolean = false
+) : Report {
 
     fun develocityBuildScanReporting(
         develocityConfiguration: DevelocityConfiguration,
@@ -75,5 +77,9 @@ class BuildScanReport : Report {
 
         // Scan tags for fast categorical filtering in DRV.
         tags.forEach { buildScanData.tag(it) }
+
+        if (publishGbos) {
+            GbosDevelocityProjection.publish(report, buildScanData)
+        }
     }
 }
