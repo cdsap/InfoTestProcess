@@ -42,15 +42,25 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             val registryDir = workDir.map { it.dir("workers") }
             val persistedTxt = workDir.map { it.file("statsTestTasks.txt") }
             val persistedJson = workDir.map { it.file("statsTestTasks.json") }
+            val gbosJson = workDir.map { it.file("gbos.json") }
+            val gbosNdjson = workDir.map { it.file("gbos.ndjson") }
 
             val service = gradle.sharedServices.registerIfAbsent(
                 "statsBuildService", StatsBuildService::class.java
             ) {
                 parameters.path = persistedTxt.map { it.asFile }
                 parameters.pathJson = persistedJson.map { it.asFile }
+                parameters.pathGbosJson = gbosJson.map { it.asFile }
+                parameters.pathGbosNdjson = gbosNdjson.map { it.asFile }
                 parameters.registryDir = registryDir.map { it.asFile }
                 parameters.agentJar = agentJar.map { it.asFile }
                 parameters.develocity = providers.provider { develocityConfiguration != null }
+                parameters.gbosJsonOutput = providers.gradleProperty("infoTestProcess.gbos.json.enabled")
+                    .map { it.toBoolean() }
+                    .orElse(false)
+                parameters.gbosNdjsonOutput = providers.gradleProperty("infoTestProcess.gbos.ndjson.enabled")
+                    .map { it.toBoolean() }
+                    .orElse(false)
             }
 
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
