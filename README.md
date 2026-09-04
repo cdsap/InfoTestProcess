@@ -105,6 +105,56 @@ allowlisted build-level scalar indexes:
 | `gbos.v1.index.info_test_process.jvm.process.cpu.time.sum` | `jvm.process.cpu.time` / `sum` |
 | `gbos.v1.index.info_test_process.jvm.process.memory.heap.peak.max` | `jvm.process.memory.heap.peak` / `max` |
 
+### Optional GBOS file output
+
+Set either or both properties in `gradle.properties` (both default to `false`):
+
+```properties
+infoTestProcess.gbos.json.enabled=true
+infoTestProcess.gbos.ndjson.enabled=true
+```
+
+When disabled, no GBOS files are written. The JSON sink writes a GBOS report
+envelope to `${rootDir}/build/info-test-process/gbos.json`:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "resource": {
+    "build.tool.name": "gradle"
+  },
+  "observations": [
+    {
+      "schemaVersion": "1.0.0",
+      "producer": {
+        "name": "info-test-process",
+        "version": "2.1.0"
+      },
+      "scope": "jvm.process",
+      "aggregationScope": "entity",
+      "attributes": {
+        "process.pid": 13402,
+        "jvm.process.role": "test-worker",
+        "gradle.task.path": ":core:test",
+        "gradle.test.executor": "Gradle Test Executor 5"
+      },
+      "measurements": [
+        {
+          "name": "jvm.process.cpu.time",
+          "value": 3.05,
+          "unit": "s",
+          "aggregation": "sum"
+        }
+      ]
+    }
+  ]
+}
+```
+
+The NDJSON sink writes compact observations, one per line, to
+`${rootDir}/build/info-test-process/gbos.ndjson`. Both file outputs are generated
+from the same internal GBOS observation model used by the Develocity projection.
+
 #### Scan tags
 
 Categorical filters for fast slicing in DRV. Fired automatically when thresholds hit:
