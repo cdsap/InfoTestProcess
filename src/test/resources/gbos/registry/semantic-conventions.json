@@ -1,0 +1,209 @@
+{
+  "$schema": "../schema/semantic-conventions.schema.json",
+  "schemaVersion": "1.0.0",
+  "scopes": [
+    {
+      "name": "build.artifact",
+      "description": "A build output such as an APK, AAB, or AAR."
+    },
+    {
+      "name": "jvm.process",
+      "description": "One Gradle-related JVM process or an aggregation over those processes."
+    },
+    {
+      "name": "jvm.gc",
+      "description": "Garbage-collection observations parsed from one JVM GC log."
+    }
+  ],
+  "metrics": [
+    {
+      "name": "build.artifact.size",
+      "unit": "By",
+      "type": "gauge",
+      "description": "Artifact size in bytes.",
+      "allowedAggregations": ["last", "min", "max", "sum"]
+    },
+    {
+      "name": "jvm.process.memory.heap.limit",
+      "unit": "By",
+      "type": "gauge",
+      "description": "Configured maximum JVM heap.",
+      "allowedAggregations": ["last", "min", "max"]
+    },
+    {
+      "name": "jvm.process.memory.heap.used",
+      "unit": "By",
+      "type": "gauge",
+      "description": "Heap used at the observation point.",
+      "allowedAggregations": ["last", "min", "max"]
+    },
+    {
+      "name": "jvm.process.memory.heap.committed",
+      "unit": "By",
+      "type": "gauge",
+      "description": "Heap capacity committed at the observation point.",
+      "allowedAggregations": ["last", "min", "max"]
+    },
+    {
+      "name": "jvm.process.memory.heap.peak",
+      "unit": "By",
+      "type": "gauge",
+      "description": "Peak heap usage during the observed lifetime.",
+      "allowedAggregations": ["max"]
+    },
+    {
+      "name": "jvm.process.memory.metaspace.peak",
+      "unit": "By",
+      "type": "gauge",
+      "description": "Peak metaspace usage during the observed lifetime.",
+      "allowedAggregations": ["max"]
+    },
+    {
+      "name": "jvm.process.uptime",
+      "unit": "s",
+      "type": "gauge",
+      "description": "Elapsed JVM uptime.",
+      "allowedAggregations": ["last", "min", "max", "sum"]
+    },
+    {
+      "name": "jvm.process.cpu.time",
+      "unit": "s",
+      "type": "counter",
+      "description": "CPU time consumed by the JVM process.",
+      "allowedAggregations": ["sum", "max"]
+    },
+    {
+      "name": "jvm.process.cpu.cores",
+      "unit": "{core}",
+      "type": "gauge",
+      "description": "Average CPU time divided by uptime; values may exceed one.",
+      "allowedAggregations": ["last", "min", "max"]
+    },
+    {
+      "name": "jvm.process.gc.time",
+      "unit": "s",
+      "type": "counter",
+      "description": "Cumulative time spent in garbage collection.",
+      "allowedAggregations": ["sum", "max"]
+    },
+    {
+      "name": "jvm.process.gc.collections",
+      "unit": "{collection}",
+      "type": "counter",
+      "description": "Garbage-collection operations completed.",
+      "allowedAggregations": ["count", "sum", "max"]
+    },
+    {
+      "name": "jvm.process.jit.time",
+      "unit": "s",
+      "type": "counter",
+      "description": "Cumulative JVM JIT compilation time.",
+      "allowedAggregations": ["sum", "max"]
+    },
+    {
+      "name": "jvm.process.classes.loaded",
+      "unit": "{class}",
+      "type": "gauge",
+      "description": "Loaded-class count at the observation point.",
+      "allowedAggregations": ["last", "max"]
+    },
+    {
+      "name": "jvm.process.threads.peak",
+      "unit": "{thread}",
+      "type": "gauge",
+      "description": "Peak live-thread count.",
+      "allowedAggregations": ["max"]
+    },
+    {
+      "name": "jvm.gc.events",
+      "unit": "{collection}",
+      "type": "counter",
+      "description": "GC log events grouped by action/description.",
+      "allowedAggregations": ["count", "sum"]
+    },
+    {
+      "name": "jvm.gc.event.time",
+      "unit": "s",
+      "type": "histogram",
+      "description": "Distribution of GC event timestamps since JVM start.",
+      "allowedAggregations": ["count"]
+    }
+  ],
+  "attributes": [
+    {
+      "name": "build.tool.name",
+      "type": "string",
+      "cardinality": "low",
+      "values": ["gradle"],
+      "description": "Build tool that produced the report."
+    },
+    {
+      "name": "process.pid",
+      "type": "integer",
+      "cardinality": "high",
+      "description": "Operating-system process identifier. Never encode this in a metric or custom-value name."
+    },
+    {
+      "name": "jvm.process.role",
+      "type": "string",
+      "cardinality": "low",
+      "values": ["gradle-daemon", "kotlin-daemon", "test-worker"],
+      "description": "Role of the JVM in the build."
+    },
+    {
+      "name": "jvm.gc.name",
+      "type": "string",
+      "cardinality": "low",
+      "description": "Normalized garbage collector name, for example G1 or ZGC."
+    },
+    {
+      "name": "jvm.gc.action",
+      "type": "string",
+      "cardinality": "medium",
+      "description": "GC event description parsed from the log."
+    },
+    {
+      "name": "gradle.task.path",
+      "type": "string",
+      "cardinality": "medium",
+      "description": "Fully-qualified Gradle task path."
+    },
+    {
+      "name": "gradle.test.executor",
+      "type": "string",
+      "cardinality": "high",
+      "description": "Gradle test worker executor label."
+    },
+    {
+      "name": "gradle.project.path",
+      "type": "string",
+      "cardinality": "medium",
+      "description": "Gradle project path that produced an artifact."
+    },
+    {
+      "name": "android.variant.name",
+      "type": "string",
+      "cardinality": "medium",
+      "description": "Android variant name."
+    },
+    {
+      "name": "artifact.name",
+      "type": "string",
+      "cardinality": "high",
+      "description": "Artifact file name."
+    },
+    {
+      "name": "artifact.type",
+      "type": "string",
+      "cardinality": "low",
+      "values": ["apk", "aab", "aar"],
+      "description": "Normalized artifact type."
+    },
+    {
+      "name": "log.file.name",
+      "type": "string",
+      "cardinality": "medium",
+      "description": "GC log base file name; never include an absolute path."
+    }
+  ]
+}
