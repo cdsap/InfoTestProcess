@@ -27,13 +27,18 @@ plugins {
 }
 ```
 
-That's it. The plugin attaches to every `Test` task in the build and produces output
-in two modes:
+That's it. The plugin attaches to every `Test` task in the build and produces
+legacy output in two modes:
 
 | Mode | Output |
 |---|---|
 | Develocity applied | Custom values + scan tags published to the Build Scan |
-| No Develocity | Structured JSON file at `${rootDir}/statsTestTasks.json` |
+| No Develocity | Structured JSON file at `${rootDir}/build/info-test-process/statsTestTasks.json` |
+
+GBOS output is experimental and disabled by default. Enabling it is opt-in and
+does not change legacy JSON, Build Scan custom values, or tags. File sinks and
+Develocity GBOS publishing can be enabled independently during same-major
+adoption.
 
 ## Output
 
