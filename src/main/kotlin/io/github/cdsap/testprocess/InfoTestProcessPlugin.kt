@@ -20,6 +20,11 @@ import org.gradle.process.CommandLineArgumentProvider
 class InfoTestProcessPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
         val develocityConfiguration = target.extensions.findByType(DevelocityConfiguration::class.java)
+        val gbos = target.extensions.create(
+            "infoTestProcess",
+            InfoTestProcessExtension::class.java
+        ).gbos
+        GbosOptIn.configureConventions(gbos, target.providers)
 
         // Populated by the rootProject {} action below, which runs when the root project is
         // instantiated — before any project (including the root) is configured, so the
@@ -55,23 +60,15 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                 parameters.registryDir = registryDir.map { it.asFile }
                 parameters.agentJar = agentJar.map { it.asFile }
                 parameters.develocity = providers.provider { develocityConfiguration != null }
-                parameters.gbosJsonOutput = providers.gradleProperty("infoTestProcess.gbos.json.enabled")
-                    .map { it.toBoolean() }
-                    .orElse(false)
-                parameters.gbosNdjsonOutput = providers.gradleProperty("infoTestProcess.gbos.ndjson.enabled")
-                    .map { it.toBoolean() }
-                    .orElse(false)
+                parameters.gbosJsonOutput = gbos.json
+                parameters.gbosNdjsonOutput = gbos.ndjson
             }
 
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
                 parameters.file.set(persistedTxt)
             }
             if (develocityConfiguration != null) {
-                val publishGbosToDevelocity = providers.gradleProperty("infoTestProcess.gbos.develocity.enabled")
-                    .map { it.toBoolean() }
-                    .orElse(false)
-                    .get()
-                BuildScanReport(publishGbosToDevelocity)
+                BuildScanReport(gbos.develocity.get())
                     .develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
             }
 

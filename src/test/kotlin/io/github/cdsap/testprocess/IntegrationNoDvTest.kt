@@ -114,12 +114,59 @@ class IntegrationNoDvTest {
         assertTrue(lines.all { it.startsWith("{") && it.endsWith("}") })
     }
 
-    private fun createProject(extraGradleProperties: String = "") {
+    @Test
+    fun gbosMasterEnabledPropertyOptsIntoBothFileSinks() {
+        createProject(
+            extraGradleProperties = "infoTestProcess.gbos.enabled=true"
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments("test", "--configuration-cache")
+            .withPluginClasspath()
+            .withGradleVersion("9.7.1")
+            .build()
+
+        val gbosJson = File("${testProjectDir.root}/build/info-test-process/gbos.json")
+        val gbosNdjson = File("${testProjectDir.root}/build/info-test-process/gbos.ndjson")
+        assertTrue(gbosJson.exists())
+        assertTrue(gbosNdjson.exists())
+        assertTrue(gbosJson.readText().contains("\"observations\""))
+    }
+
+    @Test
+    fun gbosExtensionDslCanEnableFileOutput() {
+        createProject(
+            settingsExtra = """
+                    infoTestProcess {
+                        gbos {
+                            enabled = true
+                        }
+                    }
+            """.trimIndent()
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments("test", "--configuration-cache")
+            .withPluginClasspath()
+            .withGradleVersion("9.7.1")
+            .build()
+
+        assertTrue(File("${testProjectDir.root}/build/info-test-process/gbos.json").exists())
+        assertTrue(File("${testProjectDir.root}/build/info-test-process/gbos.ndjson").exists())
+    }
+
+    private fun createProject(
+        extraGradleProperties: String = "",
+        settingsExtra: String = ""
+    ) {
         testProjectDir.newFile("settings.gradle").appendText(
             """
                     plugins {
                        id 'io.github.cdsap.testprocess'
                     }
+                    $settingsExtra
 
                 """.trimIndent()
         )
