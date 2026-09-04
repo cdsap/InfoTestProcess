@@ -81,11 +81,40 @@ class IntegrationNoDvTest {
             assertTrue(body.contains("\"byTask\""))
             assertTrue(body.contains("\"workers\""))
             assertTrue(body.contains("\"tags\""))
+            assertTrue(!File("${testProjectDir.root}/build/info-test-process/gbos.json").exists())
+            assertTrue(!File("${testProjectDir.root}/build/info-test-process/gbos.ndjson").exists())
 
         }
     }
 
-    private fun createProject() {
+    @Test
+    fun gbosFilesAreGeneratedOnlyWhenOptedIn() {
+
+        createProject(
+            extraGradleProperties = """
+                    infoTestProcess.gbos.json.enabled=true
+                    infoTestProcess.gbos.ndjson.enabled=true
+            """.trimIndent()
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments("test", "--configuration-cache")
+            .withPluginClasspath()
+            .withGradleVersion("9.7.1")
+            .build()
+
+        val gbosJson = File("${testProjectDir.root}/build/info-test-process/gbos.json")
+        val gbosNdjson = File("${testProjectDir.root}/build/info-test-process/gbos.ndjson")
+        assertTrue(gbosJson.exists())
+        assertTrue(gbosNdjson.exists())
+        assertTrue(gbosJson.readText().contains("\"observations\""))
+        val lines = gbosNdjson.readLines()
+        assertTrue(lines.isNotEmpty())
+        assertTrue(lines.all { it.startsWith("{") && it.endsWith("}") })
+    }
+
+    private fun createProject(extraGradleProperties: String = "") {
         testProjectDir.newFile("settings.gradle").appendText(
             """
                     plugins {
@@ -98,6 +127,7 @@ class IntegrationNoDvTest {
         testProjectDir.newFile("gradle.properties").appendText(
             """
                     kotlin.internal.collectFUSMetrics=false
+                    $extraGradleProperties
                 """.trimIndent()
         )
         testProjectDir.newFile("build.gradle").appendText(

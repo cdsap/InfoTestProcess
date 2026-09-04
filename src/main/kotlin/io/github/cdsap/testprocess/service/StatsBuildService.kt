@@ -5,8 +5,10 @@ import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
+import io.github.cdsap.testprocess.report.GbosOutputReport
 import io.github.cdsap.testprocess.report.JsonValue
 import io.github.cdsap.testprocess.report.OutputReport
+import io.github.cdsap.testprocess.report.ReportDocument
 import kotlinx.serialization.json.Json
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
@@ -20,9 +22,13 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
     interface Parameters : BuildServiceParameters {
         var path: Provider<File>
         var pathJson: Provider<File>
+        var pathGbosJson: Provider<File>
+        var pathGbosNdjson: Provider<File>
         var registryDir: Provider<File>
         var agentJar: Provider<File>
         var develocity: Provider<Boolean>
+        var gbosJsonOutput: Provider<Boolean>
+        var gbosNdjsonOutput: Provider<Boolean>
     }
 
     val processes = mutableMapOf<Long, TestProcess>()
@@ -56,6 +62,18 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
                 payload.stats,
                 JsonValue()
             )
+        }
+        val writeGbosJson = parameters.gbosJsonOutput.get()
+        val writeGbosNdjson = parameters.gbosNdjsonOutput.get()
+        if (writeGbosJson || writeGbosNdjson) {
+            GbosOutputReport(parameters.pathGbosJson.get(), parameters.pathGbosNdjson.get()).write(
+                ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats),
+                writeJson = writeGbosJson,
+                writeNdjson = writeGbosNdjson
+            )
+        } else {
+            parameters.pathGbosJson.get().delete()
+            parameters.pathGbosNdjson.get().delete()
         }
     }
 
