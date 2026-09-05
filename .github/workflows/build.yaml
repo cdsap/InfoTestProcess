@@ -123,3 +123,84 @@ jobs:
                   ../../gradlew test -Dorg.gradle.unsafe.isolated-projects=true 2>&1 | tee "$log"
                   grep -q "Configuration cache entry reused" "$log" \
                       || { echo "::error::IP second build did not reuse CC"; exit 1; }
+
+    compatibility:
+        needs: prBranch
+        name: "${{ matrix.project }} / Gradle ${{ matrix.gradle }} / JDK ${{ matrix.java }}"
+        timeout-minutes: 30
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    # Minimum supported Gradle
+                    - project: e2e/consumer
+                      gradle: "8.0.2"
+                      java: "17"
+
+                    # Latest Gradle 8.x
+                    - project: e2e/consumer
+                      gradle: "8.14.3"
+                      java: "17"
+
+                    - project: e2e/consumer
+                      gradle: "8.14.3"
+                      java: "21"
+
+                    # Current Gradle
+                    - project: e2e/consumer
+                      gradle: "9.7.1"
+                      java: "17"
+
+                    - project: e2e/consumer
+                      gradle: "9.7.1"
+                      java: "21"
+
+                    - project: e2e/consumer
+                      gradle: "9.7.1"
+                      java: "25"
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v7
+
+            # Build/publish the plugin itself with its required JDK 17 toolchain
+            - name: Setup JDK 17 for plugin build
+              uses: actions/setup-java@v6
+              with:
+                  distribution: temurin
+                  java-version: 17
+
+            - name: Publish plugin to mavenLocal
+              run: ./gradlew publishToMavenLocal
+
+            # Now switch to the JDK we actually want to test
+            - name: Setup JDK ${{ matrix.java }}
+              uses: actions/setup-java@v6
+              with:
+                  distribution: temurin
+                  java-version: ${{ matrix.java }}
+
+            - name: Setup Gradle ${{ matrix.gradle }}
+              uses: gradle/actions/setup-gradle@v6
+              with:
+                  gradle-version: ${{ matrix.gradle }}
+
+            - name: Test consumer
+              working-directory: ${{ matrix.project }}
+              run: gradle test --configuration-cache
+
+            - name: Verify InfoTestProcess output
+              working-directory: ${{ matrix.project }}
+              shell: bash
+              run: |
+                  set -euo pipefail
+
+                  test -f build/info-test-process/statsTestTasks.json \
+                      || {
+                          echo "::error::statsTestTasks.json was not generated"
+                          exit 1
+                      }
+
+                  echo "OK — Gradle ${{ matrix.gradle }} / JDK ${{ matrix.java }}"
