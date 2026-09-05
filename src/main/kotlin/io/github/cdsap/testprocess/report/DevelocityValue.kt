@@ -6,4 +6,8 @@ class DevelocityValue(val develocityConfiguration: BuildScanConfiguration) : Bui
     override fun value(key: String, value: String) {
         develocityConfiguration.value(key, value)
     }
+
+    override fun tag(name: String) {
+        develocityConfiguration.tag(name)
+    }
 }

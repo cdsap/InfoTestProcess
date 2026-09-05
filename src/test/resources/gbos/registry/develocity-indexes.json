@@ -1,0 +1,39 @@
+{
+  "$schema": "../schema/develocity-indexes.schema.json",
+  "schemaVersion": "1.0.0",
+  "description": "Optional scalar indexes. Canonical data remains in gbos.v1.observation values.",
+  "indexes": [
+    {
+      "name": "gbos.v1.index.info_test_process.jvm.process.cpu.cores.max",
+      "producer": "info-test-process",
+      "scope": "jvm.process",
+      "metric": "jvm.process.cpu.cores",
+      "aggregation": "max",
+      "aggregationScope": "build"
+    },
+    {
+      "name": "gbos.v1.index.info_test_process.jvm.process.cpu.time.sum",
+      "producer": "info-test-process",
+      "scope": "jvm.process",
+      "metric": "jvm.process.cpu.time",
+      "aggregation": "sum",
+      "aggregationScope": "build"
+    },
+    {
+      "name": "gbos.v1.index.info_test_process.jvm.process.memory.heap.peak.max",
+      "producer": "info-test-process",
+      "scope": "jvm.process",
+      "metric": "jvm.process.memory.heap.peak",
+      "aggregation": "max",
+      "aggregationScope": "build"
+    },
+    {
+      "name": "gbos.v1.index.android_artifacts_size_report.build.artifact.size.max",
+      "producer": "android-artifacts-size-report",
+      "scope": "build.artifact",
+      "metric": "build.artifact.size",
+      "aggregation": "max",
+      "aggregationScope": "build"
+    }
+  ]
+}

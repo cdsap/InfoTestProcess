@@ -2,7 +2,6 @@ package io.github.cdsap.testprocess
 
 import junit.framework.TestCase.assertTrue
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -14,11 +13,6 @@ class InfoTestProcessPluginTest {
 
     @Test
     fun testPluginIsCompatibleWithConfigurationCacheWithGradleEnterprise() {
-//        assumeTrue(
-//            "Gradle Enterprise URL and Access Key are set",
-//            System.getenv("GE_URL") != null && System.getenv("GE_API_KEY") != null
-//        )
-
         testProjectDir.newFile("settings.gradle").appendText(
             """
                 plugins {
@@ -52,16 +46,17 @@ class InfoTestProcessPluginTest {
                 }
             """.trimIndent()
         )
-        listOf("8.14.3", "9.1.0").forEach {
+        val ccArgs = listOf("test", "--configuration-cache", "--configuration-cache-problems=fail")
+        listOf("8.14.3", "9.1.0", "9.7.1").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("test", "--configuration-cache")
+                .withArguments(ccArgs)
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
             val secondBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("test", "--configuration-cache")
+                .withArguments(ccArgs)
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
