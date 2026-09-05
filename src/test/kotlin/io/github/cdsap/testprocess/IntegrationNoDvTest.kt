@@ -1,9 +1,7 @@
 package io.github.cdsap.testprocess
 
 import junit.framework.TestCase.assertTrue
-import org.gradle.kotlin.dsl.accessors.runtime.addDependencyTo
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -15,22 +13,24 @@ class IntegrationNoDvTest {
     val testProjectDir = TemporaryFolder()
 
     @Test
-    fun testPluginIsCompatibleWithConfigurationCacheWithGradleEnterprise() {
-
+    fun testPluginIsCompatibleWithConfigurationCache() {
+        // Proves Portal compatibility.features.configurationCache = true:
+        // representative task twice with CC enabled, second run must be a HIT,
+        // and --configuration-cache-problems=fail ensures no CC problems.
         createProject()
 
-        listOf("8.14.3", "9.1.0").forEach {
+        val ccArgs = listOf("test", "--configuration-cache", "--configuration-cache-problems=fail")
+        listOf("8.14.3", "9.1.0", "9.7.1").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("test", "--configuration-cache")
+                .withArguments(ccArgs)
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
 
-
             val secondBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("test", "--configuration-cache")
+                .withArguments(ccArgs)
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
@@ -43,7 +43,7 @@ class IntegrationNoDvTest {
     fun testPluginIsCompatibleWithProjectIsolation() {
 
         createProject()
-        listOf("8.14.3", "9.1.0").forEach {
+        listOf("8.14.3", "9.1.0", "9.7.1").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments("test", "-Dorg.gradle.unsafe.isolated-projects=true")
@@ -67,21 +67,54 @@ class IntegrationNoDvTest {
 
         createProject()
 
-        listOf("8.14.3", "9.1.0").forEach {
+        listOf("8.14.3", "9.1.0", "9.7.1").forEach {
             val firstBuild = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments("test", "--configuration-cache")
                 .withPluginClasspath()
                 .withGradleVersion(it)
                 .build()
-            val firstJson = File("${testProjectDir.root}/statsTestTasks.json")
+            val firstJson = File("${testProjectDir.root}/build/info-test-process/statsTestTasks.json")
             assertTrue(firstJson.exists())
-            assertTrue(firstJson.readText().contains("Test-Process"))
+            val body = firstJson.readText()
+            assertTrue(body.contains("\"summary\""))
+            assertTrue(body.contains("\"byTask\""))
+            assertTrue(body.contains("\"workers\""))
+            assertTrue(body.contains("\"tags\""))
+            assertTrue(!File("${testProjectDir.root}/build/info-test-process/gbos.json").exists())
+            assertTrue(!File("${testProjectDir.root}/build/info-test-process/gbos.ndjson").exists())
 
         }
     }
 
-    private fun createProject() {
+    @Test
+    fun gbosFilesAreGeneratedOnlyWhenOptedIn() {
+
+        createProject(
+            extraGradleProperties = """
+                    infoTestProcess.gbos.json.enabled=true
+                    infoTestProcess.gbos.ndjson.enabled=true
+            """.trimIndent()
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments("test", "--configuration-cache")
+            .withPluginClasspath()
+            .withGradleVersion("9.7.1")
+            .build()
+
+        val gbosJson = File("${testProjectDir.root}/build/info-test-process/gbos.json")
+        val gbosNdjson = File("${testProjectDir.root}/build/info-test-process/gbos.ndjson")
+        assertTrue(gbosJson.exists())
+        assertTrue(gbosNdjson.exists())
+        assertTrue(gbosJson.readText().contains("\"observations\""))
+        val lines = gbosNdjson.readLines()
+        assertTrue(lines.isNotEmpty())
+        assertTrue(lines.all { it.startsWith("{") && it.endsWith("}") })
+    }
+
+    private fun createProject(extraGradleProperties: String = "") {
         testProjectDir.newFile("settings.gradle").appendText(
             """
                     plugins {
@@ -94,6 +127,7 @@ class IntegrationNoDvTest {
         testProjectDir.newFile("gradle.properties").appendText(
             """
                     kotlin.internal.collectFUSMetrics=false
+                    $extraGradleProperties
                 """.trimIndent()
         )
         testProjectDir.newFile("build.gradle").appendText(

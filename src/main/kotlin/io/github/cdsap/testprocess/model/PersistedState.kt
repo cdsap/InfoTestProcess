@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PersistedState(
     val processes: Map<Long, TestProcess>,
-    val jstatResults: Map<Long, String>,
+    val runtimeStats: Map<Long, WorkerRuntimeStats>,
     val stats: Stats
 )

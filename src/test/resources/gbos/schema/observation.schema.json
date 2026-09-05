@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Build Observability Observation",
+  "description": "A self-contained, producer-neutral build observation.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "producer",
+    "scope",
+    "aggregationScope",
+    "attributes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "producer": {
+      "$ref": "#/$defs/producer"
+    },
+    "scope": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+      "maxLength": 255
+    },
+    "aggregationScope": {
+      "enum": ["entity", "task", "project", "build"]
+    },
+    "attributes": {
+      "$ref": "#/$defs/attributes"
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/measurement"
+      },
+      "minItems": 1
+    },
+    "histograms": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/histogram"
+      },
+      "minItems": 1
+    },
+    "partial": {
+      "type": "boolean",
+      "default": false
+    },
+    "droppedObservations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      },
+      "uniqueItems": true
+    }
+  },
+  "anyOf": [
+    { "required": ["measurements"] },
+    { "required": ["histograms"] }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "producer": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 255
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "attributeValue": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" }
+      ]
+    },
+    "attributes": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/attributeValue"
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "required": ["name", "value", "unit", "aggregation"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "maxLength": 255
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "pattern": "^[ -~]+$",
+          "maxLength": 63
+        },
+        "aggregation": {
+          "enum": ["last", "min", "max", "sum", "count"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "histogram": {
+      "type": "object",
+      "required": ["name", "unit", "aggregation", "buckets"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "maxLength": 255
+        },
+        "unit": {
+          "type": "string",
+          "pattern": "^[ -~]+$",
+          "maxLength": 63
+        },
+        "aggregation": {
+          "enum": ["count"]
+        },
+        "buckets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bucket"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "bucket": {
+      "type": "object",
+      "required": ["gte", "count"],
+      "properties": {
+        "gte": { "type": "number" },
+        "lt": { "type": "number" },
+        "count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "severity"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+        },
+        "severity": {
+          "enum": ["info", "warning", "error"]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

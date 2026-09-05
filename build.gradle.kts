@@ -1,14 +1,16 @@
+import org.gradle.plugin.compatibility.compatibility
+
 plugins {
     `java-gradle-plugin`
     `maven-publish`
     `kotlin-dsl`
-    id("com.gradle.plugin-publish") version "1.0.0-rc-1"
-    kotlin("plugin.serialization") version "2.2.0"
+    id("com.gradle.plugin-publish") version "2.1.1"
+    kotlin("plugin.serialization") version "2.4.10"
 
 }
 
 group = "io.github.cdsap"
-version = "1.0.2-SNAPSHOT"
+version = "2.1.0"
 
 java {
     toolchain {
@@ -16,27 +18,59 @@ java {
     }
 }
 
+sourceSets {
+    create("agent") {
+        java.srcDir("src/agent/java")
+    }
+}
+
 dependencies {
-    compileOnly("com.gradle:develocity-gradle-plugin:4.0.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    compileOnly("com.gradle:develocity-gradle-plugin:4.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
 }
 
+val agentJar = tasks.register<Jar>("agentJar") {
+    archiveBaseName.set("info-test-process-agent")
+    archiveVersion.set("")
+    from(sourceSets["agent"].output)
+    manifest {
+        attributes(
+            "Premain-Class" to "io.github.cdsap.testprocess.agent.WorkerRegistrarAgent",
+            "Can-Retransform-Classes" to "false",
+            "Can-Redefine-Classes" to "false"
+        )
+    }
+}
+
+// Route the agent jar through processResources so it ends up at
+// build/resources/main/META-INF/agent/info-test-process-agent.jar — that path is
+// included in both the final plugin jar AND the plugin classpath exposed by
+// GradleRunner.withPluginClasspath() to integration tests.
+tasks.named<ProcessResources>("processResources") {
+    from(agentJar.flatMap { it.archiveFile }) {
+        into("META-INF/agent")
+    }
+}
+
 gradlePlugin {
+    website.set("https://github.com/cdsap/InfoTestProcess")
+    vcsUrl.set("https://github.com/cdsap/InfoTestProcess")
     plugins {
         create("InfoTestProcessPlugin") {
             id = "io.github.cdsap.testprocess"
             displayName = "Info Test Processes"
             description = "Retrieve information of the Test processes after the build execution"
             implementationClass = "io.github.cdsap.testprocess.InfoTestProcessPlugin"
+            tags.set(listOf("test", "process"))
+            // Proven by IntegrationNoDvTest / e2e-cc (store then HIT with --configuration-cache).
+            compatibility {
+                features {
+                    configurationCache = true
+                }
+            }
         }
     }
-}
-
-pluginBundle {
-    website = "https://github.com/cdsap/InfoTestProcess"
-    vcsUrl = "https://github.com/cdsap/InfoTestProcess"
-    tags = listOf("test", "process")
 }
 
 publishing {
