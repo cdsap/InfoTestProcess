@@ -35,10 +35,10 @@ legacy output in two modes:
 | Develocity applied | Custom values + scan tags published to the Build Scan |
 | No Develocity | Structured JSON file at `${rootDir}/build/info-test-process/statsTestTasks.json` |
 
-GBOS output is experimental and disabled by default. Enabling it is opt-in and
-does not change legacy JSON, Build Scan custom values, or tags. File sinks and
-Develocity GBOS publishing can be enabled independently during same-major
-adoption.
+GBOS output is experimental and disabled by default (`gbos.enabled=false`).
+Enabling it is opt-in and does not change legacy JSON, Build Scan custom values,
+or tags. File sinks and Develocity GBOS publishing can be enabled independently
+during same-major adoption. Prefer Gradle properties for CI-friendly opt-in.
 
 ## Output
 
@@ -101,8 +101,9 @@ no GBOS properties keep the same legacy output as before.
 
 Set `infoTestProcess.gbos.develocity.enabled=true` in `gradle.properties` (or
 `-PinfoTestProcess.gbos.develocity.enabled=true`) to also publish the GBOS
-Develocity projection during same-major adoption. Legacy `testProcess.*` custom
-values and scan tags remain unchanged and continue to be the supported default.
+Develocity projection. This flag is independent of file output and of
+`infoTestProcess.gbos.enabled`. Legacy `testProcess.*` custom values and scan
+tags remain unchanged and continue to be the supported default.
 
 The projection emits canonical observations as repeated `gbos.v1.observation`
 custom values. Any PID, task path, or test executor identity is stored inside the
@@ -117,15 +118,33 @@ allowlisted build-level scalar indexes:
 
 ### Optional GBOS file output
 
-Set either or both properties in `gradle.properties` (both default to `false`):
+GBOS file output is off unless you opt in. The simplest CI-friendly switch:
+
+```properties
+infoTestProcess.gbos.enabled=true
+```
+
+That enables both JSON and NDJSON sinks. You can also target a single sink
+(these override the master flag when set):
 
 ```properties
 infoTestProcess.gbos.json.enabled=true
 infoTestProcess.gbos.ndjson.enabled=true
 ```
 
-When disabled, no GBOS files are written. The JSON sink writes a GBOS report
-envelope to `${rootDir}/build/info-test-process/gbos.json`:
+The same options are available on the Settings extension:
+
+```kotlin
+infoTestProcess {
+    gbos {
+        enabled.set(true)
+        // develocity.set(true) // independent of file sinks
+    }
+}
+```
+
+When disabled, no GBOS files are written and legacy output is unchanged. The JSON
+sink writes a GBOS report envelope to `${rootDir}/build/info-test-process/gbos.json`:
 
 ```json
 {
