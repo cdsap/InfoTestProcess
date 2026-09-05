@@ -73,15 +73,20 @@ class GbosReportTest {
 
         GbosOutputReport(json, ndjson).write(report, writeJson = true, writeNdjson = true)
 
+        val schema = GbosContract.load()
         val jsonDocument = ReportJson.json.parseToJsonElement(json.readText()).jsonObject
         assert(jsonDocument["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
         assert(jsonDocument["observations"]!!.jsonArray.size == 2)
+        schema.validateReport(jsonDocument)
 
         val lines = ndjson.readLines()
         assert(lines.size == 2)
         assert(lines.all { "\n" !in it })
-        assert(lines.map { ReportJson.json.parseToJsonElement(it).jsonObject["schemaVersion"]!!.jsonPrimitive.content }
-            .all { it == "1.0.0" })
+        lines.forEachIndexed { index, line ->
+            val observation = ReportJson.json.parseToJsonElement(line).jsonObject
+            assert(observation["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
+            schema.validateObservation(observation, "ndjson[$index]")
+        }
     }
 
     @Test
