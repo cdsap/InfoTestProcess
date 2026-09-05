@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Develocity custom-value projection",
+  "type": "object",
+  "required": ["schemaVersion", "customValues", "tags"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "schemaVersion": { "const": "1.0.0" },
+    "customValues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "value"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^gbos\\.v1\\.(observation|index\\.[a-z0-9_]+\\.[a-z][a-z0-9_.]*\\.(last|min|max|sum|count))$",
+            "maxLength": 255
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 90000
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^gbos:v1:[a-z0-9][a-z0-9:-]*$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

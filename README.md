@@ -93,12 +93,17 @@ the heaviest workers by `cpuTimeSec` are kept and the plugin emits
 `testProcess.worker.truncated=true` plus `testProcess.worker.total=<count>` so you
 know data was dropped.
 
-#### Optional GBOS projection
+#### Optional GBOS projection (experimental)
 
-Set `infoTestProcess.gbos.develocity.enabled=true` in `gradle.properties` to
-publish the opt-in GBOS Develocity projection. This flag is independent of file
-output and of `infoTestProcess.gbos.enabled`. Legacy `testProcess.*` custom
-values and scan tags remain unchanged.
+GBOS ([Gradle Build Observability Schema](https://github.com/cdsap/build-observability-schema))
+is an **experimental, opt-in** spike. It is **disabled by default** — installs with
+no GBOS properties keep the same legacy output as before.
+
+Set `infoTestProcess.gbos.develocity.enabled=true` in `gradle.properties` (or
+`-PinfoTestProcess.gbos.develocity.enabled=true`) to also publish the GBOS
+Develocity projection. This flag is independent of file output and of
+`infoTestProcess.gbos.enabled`. Legacy `testProcess.*` custom values and scan
+tags remain unchanged and continue to be the supported default.
 
 The projection emits canonical observations as repeated `gbos.v1.observation`
 custom values. Any PID, task path, or test executor identity is stored inside the
@@ -178,6 +183,10 @@ sink writes a GBOS report envelope to `${rootDir}/build/info-test-process/gbos.j
 The NDJSON sink writes compact observations, one per line, to
 `${rootDir}/build/info-test-process/gbos.ndjson`. Both file outputs are generated
 from the same internal GBOS observation model used by the Develocity projection.
+
+Generated GBOS examples are validated in CI against the public schema contract
+(test-only; not a runtime dependency). See [docs/gbos.md](docs/gbos.md) for
+opt-in flags, compatibility rules, and legacy key retention.
 
 #### Scan tags
 
