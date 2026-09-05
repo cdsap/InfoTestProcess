@@ -1,0 +1,4 @@
+Vendor pin for test/CI-only GBOS contract validation.
+Repository: https://github.com/cdsap/build-observability-schema
+Commit: 1233bc0bd44835948402839bc2ed1ebf42f4c85a
+Not a runtime dependency of the plugin.
