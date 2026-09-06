@@ -6,7 +6,6 @@ import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.report.GbosOutputReport
-import io.github.cdsap.testprocess.report.JsonValue
 import io.github.cdsap.testprocess.report.OutputReport
 import io.github.cdsap.testprocess.report.ReportDocument
 import kotlinx.serialization.json.Json
@@ -56,11 +55,10 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
         } else {
             val outputJson = parameters.pathJson.get()
             outputJson.parentFile?.mkdirs()
-            OutputReport(outputJson).extracted(
+            OutputReport(outputJson).write(
                 payload.processes,
                 payload.runtimeStats,
-                payload.stats,
-                JsonValue()
+                payload.stats
             )
         }
         val writeGbosJson = parameters.gbosJsonOutput.get()

@@ -14,13 +14,12 @@ data class OutputDocument(
     val tags: List<String>
 )
 
-class OutputReport(val outputJson: File) : Report {
+class OutputReport(val outputJson: File) {
 
-    override fun extracted(
+    fun write(
         processes: Map<Long, TestProcess>,
         runtimeStats: Map<Long, WorkerRuntimeStats>,
-        stats: Stats,
-        buildScanData: BuildScanData
+        stats: Stats
     ) {
         if (processes.isEmpty()) {
             outputJson.writeText("{}")
