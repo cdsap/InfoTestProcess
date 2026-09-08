@@ -47,7 +47,12 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
 
     override fun close() {
         val registry = parameters.registryDir.get()
-        val payload = WorkerStateCollector.collect(registry, processes, stats)
+        val payload = WorkerStateCollector.collect(
+            WorkerRegistry.read(registry),
+            WorkerRegistry.readStats(registry),
+            processes,
+            stats
+        )
         if (parameters.develocity.get()) {
             val output = parameters.path.get()
             output.parentFile?.mkdirs()
