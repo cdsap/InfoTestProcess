@@ -1,6 +1,5 @@
 package io.github.cdsap.testprocess
 
-import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import io.github.cdsap.testprocess.report.BuildScanReport
 import io.github.cdsap.testprocess.service.StatsBuildService
 import org.gradle.api.Plugin
@@ -19,7 +18,7 @@ import org.gradle.process.CommandLineArgumentProvider
 
 class InfoTestProcessPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
-        val develocityConfiguration = target.extensions.findByType(DevelocityConfiguration::class.java)
+        val develocityConfiguration = target.extensions.findByName("develocity")
         val gbos = target.extensions.create(
             "infoTestProcess",
             InfoTestProcessExtension::class.java
@@ -68,8 +67,12 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                 parameters.file.set(persistedTxt)
             }
             if (develocityConfiguration != null) {
+                @Suppress("UNCHECKED_CAST")
                 BuildScanReport(gbos.develocity.get())
-                    .develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
+                    .develocityBuildScanReporting(
+                        develocityConfiguration as com.gradle.develocity.agent.gradle.DevelocityConfiguration,
+                        persistedStateProvider
+                    )
             }
 
             wireProject = { project ->

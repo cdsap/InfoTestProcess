@@ -1,4 +1,5 @@
 import org.gradle.plugin.compatibility.compatibility
+import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
 
 plugins {
     `java-gradle-plugin`
@@ -24,10 +25,26 @@ sourceSets {
     }
 }
 
+val develocityPluginClasspath by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+}
+
 dependencies {
-    implementation("com.gradle:develocity-gradle-plugin:4.5.0")
+    compileOnly("com.gradle:develocity-gradle-plugin:4.5.0")
+    develocityPluginClasspath("com.gradle:develocity-gradle-plugin:4.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
+}
+
+tasks.test {
+    dependsOn("generatePomFileForPluginMavenPublication")
+}
+
+tasks.named<PluginUnderTestMetadata>("pluginUnderTestMetadata") {
+    // compileOnly keeps Develocity out of the published POM; TestKit still needs it
+    // on the plugin classpath when integration tests exercise the Develocity path.
+    pluginClasspath.from(develocityPluginClasspath)
 }
 
 val agentJar = tasks.register<Jar>("agentJar") {
