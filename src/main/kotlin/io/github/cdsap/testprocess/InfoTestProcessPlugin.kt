@@ -103,7 +103,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             addTestListener(object : TestListener {
                 override fun beforeSuite(suite: TestDescriptor?) {
                     if (isGradleExecutor(suite?.name)) {
-                        service.get().stats.totalProcesses++
+                        service.get().stats.incrementTotalProcesses()
                     }
                 }
                 override fun afterSuite(suite: TestDescriptor?, result: TestResult?) {}

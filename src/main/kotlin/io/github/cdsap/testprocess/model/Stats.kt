@@ -8,4 +8,9 @@ data class Stats(
     var tasksWithoutProcess: Int = 0,
     var statsSnapshotsCaptured: Int = 0,
     var statsSnapshotsMissing: Int = 0
-)
+) {
+    @Synchronized
+    fun incrementTotalProcesses() {
+        totalProcesses++
+    }
+}
