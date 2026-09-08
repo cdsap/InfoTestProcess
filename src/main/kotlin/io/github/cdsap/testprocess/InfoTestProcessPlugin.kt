@@ -20,11 +20,17 @@ import org.gradle.process.CommandLineArgumentProvider
 class InfoTestProcessPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
         val develocityConfiguration = target.extensions.findByType(DevelocityConfiguration::class.java)
-        val gbos = target.extensions.create(
+        val develocityOnClasspath = develocityConfiguration != null
+        val infoTestProcess = target.extensions.create(
             "infoTestProcess",
             InfoTestProcessExtension::class.java
-        ).gbos
-        GbosOptIn.configureConventions(gbos, target.providers)
+        )
+        DevelocityReporting.configureConventions(
+            infoTestProcess.develocity,
+            target.providers,
+            develocityOnClasspath
+        )
+        GbosOptIn.configureConventions(infoTestProcess.gbos, target.providers)
 
         // Populated by the rootProject {} action below, which runs when the root project is
         // instantiated — before any project (including the root) is configured, so the
@@ -59,17 +65,22 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                 parameters.pathGbosNdjson = gbosNdjson.map { it.asFile }
                 parameters.registryDir = registryDir.map { it.asFile }
                 parameters.agentJar = agentJar.map { it.asFile }
-                parameters.develocity = providers.provider { develocityConfiguration != null }
-                parameters.gbosJsonOutput = gbos.json
-                parameters.gbosNdjsonOutput = gbos.ndjson
+                parameters.develocity = providers.provider {
+                    DevelocityReporting.reportToDevelocity(
+                        develocityOnClasspath,
+                        infoTestProcess.develocity.enabled.get()
+                    )
+                }
+                parameters.gbosJsonOutput = infoTestProcess.gbos.json
+                parameters.gbosNdjsonOutput = infoTestProcess.gbos.ndjson
             }
 
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
                 parameters.file.set(persistedTxt)
             }
-            if (develocityConfiguration != null) {
-                BuildScanReport(gbos.develocity.get())
-                    .develocityBuildScanReporting(develocityConfiguration, persistedStateProvider)
+            if (develocityOnClasspath && infoTestProcess.develocity.enabled.get()) {
+                BuildScanReport(infoTestProcess.gbos.develocity.get())
+                    .develocityBuildScanReporting(develocityConfiguration!!, persistedStateProvider)
             }
 
             wireProject = { project ->
