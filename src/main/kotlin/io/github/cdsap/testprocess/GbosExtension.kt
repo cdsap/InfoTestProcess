@@ -11,11 +11,26 @@ import javax.inject.Inject
  * Prefer Gradle properties for CI opt-in; the DSL mirrors the same flags.
  */
 abstract class InfoTestProcessExtension @Inject constructor(objects: ObjectFactory) {
+    val develocity: DevelocityReportingExtension =
+        objects.newInstance(DevelocityReportingExtension::class.java)
     val gbos: GbosExtension = objects.newInstance(GbosExtension::class.java)
+
+    fun develocity(action: Action<in DevelocityReportingExtension>) {
+        action.execute(develocity)
+    }
 
     fun gbos(action: Action<in GbosExtension>) {
         action.execute(gbos)
     }
+}
+
+/**
+ * Legacy Build Scan reporting. When the Develocity plugin is applied, reporting is
+ * enabled by default; set [DevelocityReportingExtension.enabled] to false to write
+ * `statsTestTasks.json` instead.
+ */
+abstract class DevelocityReportingExtension {
+    abstract val enabled: Property<Boolean>
 }
 
 /**
