@@ -15,6 +15,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, AutoCloseable,
     OperationCompletionListener {
@@ -30,7 +31,7 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
         var gbosNdjsonOutput: Provider<Boolean>
     }
 
-    val processes = mutableMapOf<Long, TestProcess>()
+    val processes = ConcurrentHashMap<Long, TestProcess>()
     val stats = Stats()
 
     init {
