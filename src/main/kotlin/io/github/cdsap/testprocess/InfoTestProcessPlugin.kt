@@ -17,6 +17,14 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.process.CommandLineArgumentProvider
 
 class InfoTestProcessPlugin : Plugin<Settings> {
+    companion object {
+        /**
+         * Oldest JVM language version the packaged agent can load into.
+         * Must stay aligned with `compileAgentJava` `options.release` in the build.
+         */
+        internal const val AGENT_MIN_JAVA_VERSION = 11
+    }
+
     override fun apply(target: Settings) {
         val develocityConfiguration = target.extensions.findByName("develocity")
         val develocityOnClasspath = develocityConfiguration != null
@@ -103,11 +111,19 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             // Use a CommandLineArgumentProvider so the paths resolve at task
             // execution time — after any custom buildDirectory configuration in
             // the root build script has been applied.
+            //
+            // Skip -javaagent when the worker JVM is older than the agent bytecode
+            // floor: UnsupportedClassVersionError is thrown while loading the
+            // premain class, before WorkerRegistrarAgent.premain can catch it.
             jvmArgumentProviders.add(CommandLineArgumentProvider {
-                listOf(
-                    "-D${ParseInfoProcess.TASK_PROPERTY}=$testPath",
-                    "-javaagent:${agentJar.get().asFile.absolutePath}=${registryDir.get().asFile.absolutePath}"
+                val args = mutableListOf(
+                    "-D${ParseInfoProcess.TASK_PROPERTY}=$testPath"
                 )
+                val workerJava = javaLauncher.get().metadata.languageVersion
+                if (workerJava.canCompileOrRun(AGENT_MIN_JAVA_VERSION)) {
+                    args += "-javaagent:${agentJar.get().asFile.absolutePath}=${registryDir.get().asFile.absolutePath}"
+                }
+                args
             })
             doFirst {
                 // Materializing the service forces its init block, which extracts

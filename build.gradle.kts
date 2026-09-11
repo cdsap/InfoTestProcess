@@ -25,6 +25,13 @@ sourceSets {
     }
 }
 
+// Agent loads into consumer test workers; those may run on JVMs older than this
+// project's Java 17 toolchain. ProcessHandle (used by the premain) is Java 9+,
+// so 11 is the practical floor — emit that bytecode even when compiling on 17+.
+tasks.named<JavaCompile>("compileAgentJava") {
+    options.release.set(11)
+}
+
 val develocityPluginClasspath by configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
