@@ -12,13 +12,10 @@ import kotlinx.serialization.json.Json
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationCompletionListener
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, AutoCloseable,
-    OperationCompletionListener {
+abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, AutoCloseable {
     interface Parameters : BuildServiceParameters {
         var path: Provider<File>
         var pathJson: Provider<File>
@@ -79,8 +76,5 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
             parameters.pathGbosJson.get().delete()
             parameters.pathGbosNdjson.get().delete()
         }
-    }
-
-    override fun onFinish(event: FinishEvent?) {
     }
 }
