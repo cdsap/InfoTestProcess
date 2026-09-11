@@ -4,19 +4,19 @@ import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
-import java.io.File
 
 object WorkerStateCollector {
     fun collect(
-        registryDir: File,
+        registryEntries: Collection<WorkerRegistryEntry>,
+        runtimeStatsEntries: Collection<WorkerRuntimeStats>,
         processes: MutableMap<Long, TestProcess>,
         stats: Stats
     ): PersistedState {
-        WorkerRegistry.read(registryDir).forEach { entry ->
+        registryEntries.forEach { entry ->
             processes.putIfAbsent(entry.pid, WorkerIdentityMapper.toTestProcess(entry))
         }
         val runtimeStats: Map<Long, WorkerRuntimeStats> =
-            WorkerRegistry.readStats(registryDir).associateBy { it.pid }
+            runtimeStatsEntries.associateBy { it.pid }
         stats.statsSnapshotsCaptured = runtimeStats.size
         stats.statsSnapshotsMissing = processes.keys.count { it !in runtimeStats }
         return PersistedState(processes, runtimeStats, stats)
