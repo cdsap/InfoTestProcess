@@ -5,7 +5,7 @@ on:
         branches: main
 jobs:
     prBranch:
-        timeout-minutes: 300
+        timeout-minutes: 20
         strategy:
             matrix:
                 os: [ubuntu-latest,macos-latest]
@@ -16,13 +16,16 @@ jobs:
               with:
                   distribution: temurin
                   java-version: 17
+            - uses: gradle/actions/setup-gradle@v4
+              with:
+                  cache-read-only: ${{ github.ref != 'refs/heads/main' }}
             - name: Build Process Watcher
               uses: cdsap/build-process-watcher@v0.6.2
               with:
                 remote_monitoring: 'true'
                 export_to_bigquery: 'true'
             - name: Execute Gradle build
-              run:  ./gradlew test
+              run: ./gradlew build
               env:
                   GE_URL: ${{ secrets.GE_URL }}
                   GE_API_KEY: ${{ secrets.GE_API_KEY }}
@@ -41,6 +44,9 @@ jobs:
               with:
                   distribution: temurin
                   java-version: 17
+            - uses: gradle/actions/setup-gradle@v4
+              with:
+                  cache-read-only: ${{ github.ref != 'refs/heads/main' }}
             - name: Build Process Watcher
               uses: cdsap/build-process-watcher@v0.6.2
               with:
@@ -98,6 +104,9 @@ jobs:
               with:
                   distribution: temurin
                   java-version: 17
+            - uses: gradle/actions/setup-gradle@v4
+              with:
+                  cache-read-only: ${{ github.ref != 'refs/heads/main' }}
             - name: Build Process Watcher
               uses: cdsap/build-process-watcher@v0.6.2
               with:
