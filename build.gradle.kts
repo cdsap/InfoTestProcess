@@ -5,9 +5,8 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     `kotlin-dsl`
-    id("com.gradle.plugin-publish") version "2.1.1"
-    kotlin("plugin.serialization") version "2.4.10"
-
+    alias(libs.plugins.pluginPublish)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = "io.github.cdsap"
@@ -31,10 +30,10 @@ val develocityPluginClasspath by configurations.creating {
 }
 
 dependencies {
-    compileOnly("com.gradle:develocity-gradle-plugin:4.5.0")
-    develocityPluginClasspath("com.gradle:develocity-gradle-plugin:4.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-    testImplementation("junit:junit:4.13.2")
+    compileOnly(libs.develocity.gradlePlugin)
+    develocityPluginClasspath(libs.develocity.gradlePlugin)
+    implementation(libs.kotlinx.serializationJson)
+    testImplementation(libs.junit)
 }
 
 tasks.test {
