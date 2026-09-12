@@ -17,3 +17,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "InfoTestProcess"
 
+include("plugin")
+

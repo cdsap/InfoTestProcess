@@ -39,6 +39,10 @@ class PublishedPomTest {
             xml.contains("<artifactId>InfoTestProcess</artifactId>")
         )
         assertFalse(
+            "subproject directory name must not become the published artifactId",
+            xml.contains("<artifactId>plugin</artifactId>")
+        )
+        assertFalse(
             "orphaned testprocess artifactId must not be the consumed publication",
             xml.contains("<artifactId>testprocess</artifactId>")
         )
