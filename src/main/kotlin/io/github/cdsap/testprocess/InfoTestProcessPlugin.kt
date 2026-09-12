@@ -1,5 +1,6 @@
 package io.github.cdsap.testprocess
 
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import io.github.cdsap.testprocess.report.BuildScanReport
 import io.github.cdsap.testprocess.service.StatsBuildService
 import org.gradle.api.Plugin
@@ -18,8 +19,14 @@ import org.gradle.process.CommandLineArgumentProvider
 
 class InfoTestProcessPlugin : Plugin<Settings> {
     override fun apply(target: Settings) {
-        val develocityConfiguration = target.extensions.findByName("develocity")
-        val develocityOnClasspath = develocityConfiguration != null
+        // Track Develocity via withPlugin so application order does not matter.
+        // Eager findByType/findByName is null when this plugin is applied first.
+        var develocityPresent = false
+        val develocityPresentProvider = target.providers.provider { develocityPresent }
+        target.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
+            develocityPresent = true
+        }
+
         val infoTestProcess = target.extensions.create(
             "infoTestProcess",
             InfoTestProcessExtension::class.java
@@ -27,7 +34,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
         DevelocityReporting.configureConventions(
             infoTestProcess.develocity,
             target.providers,
-            develocityOnClasspath
+            develocityPresentProvider
         )
         GbosOptIn.configureConventions(infoTestProcess.gbos, target.providers)
 
@@ -66,7 +73,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                 parameters.agentJar = agentJar.map { it.asFile }
                 parameters.develocity = providers.provider {
                     DevelocityReporting.reportToDevelocity(
-                        develocityOnClasspath,
+                        develocityPresent,
                         infoTestProcess.develocity.enabled.get()
                     )
                 }
@@ -77,13 +84,17 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
                 parameters.file.set(persistedTxt)
             }
-            if (develocityOnClasspath && infoTestProcess.develocity.enabled.get()) {
-                @Suppress("UNCHECKED_CAST")
-                BuildScanReport(infoTestProcess.gbos.develocity.get())
-                    .develocityBuildScanReporting(
-                        develocityConfiguration as com.gradle.develocity.agent.gradle.DevelocityConfiguration,
-                        persistedStateProvider
-                    )
+            // Wire Build Scan reporting when Develocity is (or becomes) present.
+            // Registered here so persistedStateProvider is available; withPlugin still
+            // fires immediately if Develocity was applied before this plugin.
+            target.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
+                if (infoTestProcess.develocity.enabled.get()) {
+                    BuildScanReport(infoTestProcess.gbos.develocity.get())
+                        .develocityBuildScanReporting(
+                            target.extensions.getByType(DevelocityConfiguration::class.java),
+                            persistedStateProvider
+                        )
+                }
             }
 
             wireProject = { project ->
@@ -128,4 +139,8 @@ class InfoTestProcessPlugin : Plugin<Settings> {
     }
 
     private fun isGradleExecutor(name: String?): Boolean = name?.contains("Gradle Test Executor") ?: false
+
+    companion object {
+        private const val DEVELOCITY_PLUGIN_ID = "com.gradle.develocity"
+    }
 }
