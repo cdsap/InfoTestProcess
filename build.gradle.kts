@@ -91,41 +91,31 @@ gradlePlugin {
 }
 
 publishing {
-
-    publications {
-        create<MavenPublication>("testProcessPublication") {
-            from(components["java"])
-            artifactId = "testprocess"
-            versionMapping {
-                usage("java-api") {
-                    fromResolutionOf("runtimeClasspath")
-                }
-                usage("java-runtime") {
-                    fromResolutionResult()
+    // pluginMaven is registered late by java-gradle-plugin; configureEach applies
+    // when it appears. Metadata must live here — the marker resolves this coordinate.
+    publications.withType<MavenPublication>().configureEach {
+        if (name != "pluginMaven") return@configureEach
+        pom {
+            scm {
+                connection.set("scm:git:git://github.com/cdsap/InfoTestProcess/")
+                url.set("https://github.com/cdsap/InfoTestProcess/")
+            }
+            name.set("InfoTestProcess")
+            url.set("https://github.com/cdsap/InfoTestProcess/")
+            description.set(
+                "Retrieve information of the Test process in your Build Scan or console"
+            )
+            licenses {
+                license {
+                    name.set("The MIT License (MIT)")
+                    url.set("https://opensource.org/licenses/MIT")
+                    distribution.set("repo")
                 }
             }
-            pom {
-                scm {
-                    connection.set("scm:git:git://github.com/cdsap/InfoTestProcess/")
-                    url.set("https://github.com/cdsap/InfoTestProcess/")
-                }
-                name.set("InfoTestProcess")
-                url.set("https://github.com/cdsap/InfoTestProcess/")
-                description.set(
-                    "Retrieve information of the Test process in your Build Scan or console"
-                )
-                licenses {
-                    license {
-                        name.set("The MIT License (MIT)")
-                        url.set("https://opensource.org/licenses/MIT")
-                        distribution.set("repo")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("cdsap")
-                        name.set("Inaki Villar")
-                    }
+            developers {
+                developer {
+                    id.set("cdsap")
+                    name.set("Inaki Villar")
                 }
             }
         }
