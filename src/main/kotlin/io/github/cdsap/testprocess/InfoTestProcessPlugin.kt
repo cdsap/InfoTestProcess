@@ -79,7 +79,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             }
             if (develocityOnClasspath && infoTestProcess.develocity.enabled.get()) {
                 @Suppress("UNCHECKED_CAST")
-                BuildScanReport(infoTestProcess.gbos.develocity.get())
+                BuildScanReport(infoTestProcess.gbos.develocity)
                     .develocityBuildScanReporting(
                         develocityConfiguration as com.gradle.develocity.agent.gradle.DevelocityConfiguration,
                         persistedStateProvider

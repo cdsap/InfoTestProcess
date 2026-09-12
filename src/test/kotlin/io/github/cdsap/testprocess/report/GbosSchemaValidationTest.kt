@@ -8,10 +8,13 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 import java.io.File
 
 class GbosSchemaValidationTest {
+    private val project = ProjectBuilder.builder().build()
+
     private val processes = mapOf(
         13402L to TestProcess(task = ":core:test", executor = "Gradle Test Executor 5", max = "512m")
     )
@@ -36,7 +39,8 @@ class GbosSchemaValidationTest {
     @Test
     fun generatedJsonNdjsonAndDevelocityExamplesValidateAgainstPublicContract() {
         val scanData = RecordingBuildScanData()
-        BuildScanReport(publishGbos = true).extracted(processes, runtimeStats, Stats(), scanData)
+        BuildScanReport(publishGbos = project.providers.provider { true })
+            .extracted(processes, runtimeStats, Stats(), scanData)
 
         val gbosValues = scanData.values.filter { it.first.startsWith("gbos.v1.") }
         assert(gbosValues.isNotEmpty()) { "expected generated GBOS Develocity values" }
@@ -116,7 +120,8 @@ class GbosSchemaValidationTest {
     @Test
     fun disabledByDefaultProducesNoGbosArtifactsToValidate() {
         val scanData = RecordingBuildScanData()
-        BuildScanReport().extracted(processes, runtimeStats, Stats(), scanData)
+        BuildScanReport(publishGbos = project.providers.provider { false })
+            .extracted(processes, runtimeStats, Stats(), scanData)
 
         assert(scanData.values.none { it.first.startsWith("gbos.v1.") })
         assert(scanData.values.any { it.first.startsWith("testProcess.") })
