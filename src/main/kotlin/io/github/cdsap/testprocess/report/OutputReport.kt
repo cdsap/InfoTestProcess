@@ -1,8 +1,5 @@
 package io.github.cdsap.testprocess.report
 
-import io.github.cdsap.testprocess.model.Stats
-import io.github.cdsap.testprocess.model.TestProcess
-import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import kotlinx.serialization.Serializable
 import java.io.File
 
@@ -16,16 +13,11 @@ data class OutputDocument(
 
 class OutputReport(val outputJson: File) {
 
-    fun write(
-        processes: Map<Long, TestProcess>,
-        runtimeStats: Map<Long, WorkerRuntimeStats>,
-        stats: Stats
-    ) {
-        if (processes.isEmpty()) {
+    fun write(report: ReportDocument) {
+        if (report.workers.isEmpty()) {
             outputJson.writeText("{}")
             return
         }
-        val report = ReportDocument.from(processes, runtimeStats, stats)
         val doc = OutputDocument(
             summary = report.summary,
             byTask = report.byTask,
