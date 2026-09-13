@@ -14,12 +14,9 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationCompletionListener
 import java.util.concurrent.ConcurrentHashMap
 
-abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, AutoCloseable,
-    OperationCompletionListener {
+abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, AutoCloseable {
     interface Parameters : BuildServiceParameters {
         val persistedTxt: RegularFileProperty
         val persistedJson: RegularFileProperty
@@ -80,8 +77,5 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
             parameters.gbosJson.get().asFile.delete()
             parameters.gbosNdjson.get().asFile.delete()
         }
-    }
-
-    override fun onFinish(event: FinishEvent?) {
     }
 }
