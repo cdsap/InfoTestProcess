@@ -7,7 +7,7 @@ import java.util.Properties
 
 // Pin UTF-8 so compile fingerprints and text I/O match across CI OS legs and local JVMs.
 class GradleFileEncodingTest {
-    private val gradleProperties = File("gradle.properties")
+    private val gradleProperties = File("../gradle.properties")
 
     @Test
     fun jvmArgsPinFileEncodingToUtf8() {

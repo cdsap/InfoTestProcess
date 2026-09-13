@@ -8,7 +8,8 @@ import java.util.Properties
 
 // Requires distributionSha256Sum so the wrapper verifies downloads (gradle.org/release-checksums).
 class GradleWrapperChecksumTest {
-    private val wrapperProperties = File("gradle/wrapper/gradle-wrapper.properties")
+    // Wrapper lives at the repo root; this test runs from the :plugin project dir.
+    private val wrapperProperties = File("../gradle/wrapper/gradle-wrapper.properties")
 
     // Published Binary-only (-bin) ZIP checksum for gradle-9.7.1
     private val expectedGradle971BinSha256 =
