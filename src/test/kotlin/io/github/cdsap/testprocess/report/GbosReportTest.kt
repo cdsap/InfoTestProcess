@@ -143,6 +143,27 @@ class GbosReportTest {
     }
 
     @Test
+    fun fileAndNdjsonObservationsMatchCanonicalDevelocityObservations() {
+        val canonical = GbosObservations.from(report)
+        val canonicalJson = canonical.map(GbosObservations::toJsonObject)
+        val document = GbosReport.from(report)!!
+
+        assert(document.observations == canonicalJson)
+        assert(GbosReport.observations(report) == canonicalJson)
+
+        val develocityPayloads = canonical.map(GbosObservations::encode)
+        val ndjsonPayloads = document.observations.map(GbosReport::encodeObservation)
+        assert(ndjsonPayloads == develocityPayloads)
+
+        val indexesFromCanonical = GbosObservations.scalarIndexes(canonical)
+        assert(indexesFromCanonical.isNotEmpty())
+        indexesFromCanonical.forEach { (name, value) ->
+            assert(name.startsWith("gbos.v1.index."))
+            assert(value.toDoubleOrNull() != null)
+        }
+    }
+
+    @Test
     fun generatedExamplesMatchBundledPublicSchemaContract() {
         val document = GbosReport.from(report)!!
         val jsonDocument = ReportJson.json.parseToJsonElement(GbosReport.encodeReport(document)).jsonObject
@@ -152,7 +173,7 @@ class GbosReportTest {
         document.observations.forEachIndexed { index, observation ->
             schema.validateObservation(observation, "observations[$index]")
         }
-        GbosReport.scalarIndexes(document.observations).forEach { (name, value) ->
+        GbosObservations.scalarIndexes(GbosObservations.from(report)).forEach { (name, value) ->
             schema.validateIndex(name, value)
         }
     }
