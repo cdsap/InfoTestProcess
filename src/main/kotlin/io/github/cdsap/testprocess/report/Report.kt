@@ -6,15 +6,6 @@ import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-interface Report {
-    fun extracted(
-        processes: Map<Long, TestProcess>,
-        runtimeStats: Map<Long, WorkerRuntimeStats>,
-        stats: Stats,
-        buildScanData: BuildScanData
-    )
-}
-
 /**
  * Shared report-ready worker view: projects collected process + runtime-stats
  * maps into [WorkerProcessInfo] so Build Scan and file adapters share one
@@ -33,7 +24,7 @@ internal object WorkerReportInput {
  * (Build Scan, JSON file) consume this instead of rebuilding workers / summary /
  * byTask / tags themselves.
  */
-internal data class ReportDocument(
+data class ReportDocument(
     val workers: List<WorkerProcessInfo>,
     val summary: TestProcessSummary,
     val byTask: Map<String, TaskSummary>,
