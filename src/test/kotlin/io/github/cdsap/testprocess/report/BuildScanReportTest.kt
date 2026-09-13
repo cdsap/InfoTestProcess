@@ -36,7 +36,7 @@ class BuildScanReportTest {
     fun gbosDevelocityProjectionIsDisabledByDefault() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport().extracted(processes, runtimeStats, Stats(), scanData)
+        BuildScanReport().extracted(ReportDocument.from(processes, runtimeStats, Stats()), scanData)
 
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
         assert(scanData.values.none { it.first == "gbos.v1.observation" })
@@ -47,7 +47,10 @@ class BuildScanReportTest {
     fun emitsCanonicalGbosObservationValuesWhenEnabled() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(processes, runtimeStats, Stats(), scanData)
+        BuildScanReport(publishGbos = true).extracted(
+            ReportDocument.from(processes, runtimeStats, Stats()),
+            scanData
+        )
 
         val observations = scanData.values
             .filter { it.first == "gbos.v1.observation" }
@@ -86,7 +89,10 @@ class BuildScanReportTest {
     fun emitsOnlyAllowlistedScalarIndexesFromBuildLevelMeasurements() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(processes, runtimeStats, Stats(), scanData)
+        BuildScanReport(publishGbos = true).extracted(
+            ReportDocument.from(processes, runtimeStats, Stats()),
+            scanData
+        )
 
         val indexes = scanData.values
             .filter { it.first.startsWith("gbos.v1.index.") }
@@ -120,7 +126,10 @@ class BuildScanReportTest {
         )
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(processes, heavyStats, Stats(), scanData)
+        BuildScanReport(publishGbos = true).extracted(
+            ReportDocument.from(processes, heavyStats, Stats()),
+            scanData
+        )
 
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
         assert(scanData.values.any { it.first == "testProcess.worker.13402" })
@@ -132,7 +141,10 @@ class BuildScanReportTest {
     fun omitsMissingSnapshotSentinelsFromGbosObservations() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(processes, emptyMap(), Stats(statsSnapshotsMissing = 1), scanData)
+        BuildScanReport(publishGbos = true).extracted(
+            ReportDocument.from(processes, emptyMap(), Stats(statsSnapshotsMissing = 1)),
+            scanData
+        )
 
         val observations = scanData.values
             .filter { it.first == "gbos.v1.observation" }

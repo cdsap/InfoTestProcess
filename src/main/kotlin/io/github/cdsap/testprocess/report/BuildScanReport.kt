@@ -2,14 +2,11 @@ package io.github.cdsap.testprocess.report
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import io.github.cdsap.testprocess.model.PersistedState
-import io.github.cdsap.testprocess.model.Stats
-import io.github.cdsap.testprocess.model.TestProcess
-import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import org.gradle.api.provider.Provider
 
 class BuildScanReport(
     private val publishGbos: Boolean = false
-) : Report {
+) {
 
     fun develocityBuildScanReporting(
         develocityConfiguration: DevelocityConfiguration,
@@ -20,21 +17,21 @@ class BuildScanReport(
             buildFinished {
                 if (provider.isPresent) {
                     val state = provider.get()
-                    extracted(state.processes, state.runtimeStats, state.stats, develocityValue)
+                    extracted(
+                        ReportDocument.from(state.processes, state.runtimeStats, state.stats),
+                        develocityValue
+                    )
                 }
             }
         }
     }
 
-    override fun extracted(
-        processes: Map<Long, TestProcess>,
-        runtimeStats: Map<Long, WorkerRuntimeStats>,
-        stats: Stats,
+    fun extracted(
+        report: ReportDocument,
         buildScanData: BuildScanData
     ) {
-        if (processes.isEmpty()) return
+        if (report.workers.isEmpty()) return
 
-        val report = ReportDocument.from(processes, runtimeStats, stats)
         val workers = report.workers
         val summary = report.summary
         val tags = report.tags

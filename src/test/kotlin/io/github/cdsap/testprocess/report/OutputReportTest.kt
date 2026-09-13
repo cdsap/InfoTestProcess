@@ -17,7 +17,7 @@ class OutputReportTest {
     @Test
     fun emptyProcessesWritesEmptyObject() {
         val out = temp.newFile("statsTestTasks.json")
-        OutputReport(out).write(emptyMap(), emptyMap(), Stats())
+        OutputReport(out).write(ReportDocument.from(emptyMap(), emptyMap(), Stats()))
         assert(out.readText() == "{}")
     }
 
@@ -45,7 +45,8 @@ class OutputReportTest {
             )
         )
 
-        OutputReport(out).write(processes, runtimeStats, Stats(totalProcesses = 1))
+        val report = ReportDocument.from(processes, runtimeStats, Stats(totalProcesses = 1))
+        OutputReport(out).write(report)
 
         val body = out.readText()
         assert(body.contains("\"summary\""))
@@ -59,5 +60,9 @@ class OutputReportTest {
         assert(doc.workers.single().task == ":a:test")
         assert(doc.summary.workers.count == 1)
         assert(doc.byTask.containsKey(":a:test"))
+        assert(doc.summary == report.summary)
+        assert(doc.byTask == report.byTask)
+        assert(doc.workers == report.workers)
+        assert(doc.tags == report.tags)
     }
 }
