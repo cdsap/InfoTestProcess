@@ -55,6 +55,7 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
             processes,
             stats
         )
+        val report = ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats)
         if (parameters.develocity.get()) {
             val output = parameters.persistedTxt.get().asFile
             output.parentFile?.mkdirs()
@@ -62,11 +63,7 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
         } else {
             val outputJson = parameters.persistedJson.get().asFile
             outputJson.parentFile?.mkdirs()
-            OutputReport(outputJson).write(
-                payload.processes,
-                payload.runtimeStats,
-                payload.stats
-            )
+            OutputReport(outputJson).write(report)
         }
         val writeGbosJson = parameters.gbosJsonOutput.get()
         val writeGbosNdjson = parameters.gbosNdjsonOutput.get()
@@ -75,7 +72,7 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
                 parameters.gbosJson.get().asFile,
                 parameters.gbosNdjson.get().asFile
             ).write(
-                ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats),
+                report,
                 writeJson = writeGbosJson,
                 writeNdjson = writeGbosNdjson
             )
