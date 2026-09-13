@@ -47,6 +47,9 @@ tasks.named<PluginUnderTestMetadata>("pluginUnderTestMetadata") {
 }
 
 val agentJar = tasks.register<Jar>("agentJar") {
+    group = "build"
+    description =
+        "Builds the java agent jar that is bundled into the plugin and injected into consumer test workers."
     archiveBaseName.set("info-test-process-agent")
     archiveVersion.set("")
     from(sourceSets["agent"].output)
