@@ -5,7 +5,7 @@ import io.github.cdsap.testprocess.model.PersistedState
 import org.gradle.api.provider.Provider
 
 class BuildScanReport(
-    private val publishGbos: Boolean = false
+    private val publishGbos: Provider<Boolean>
 ) {
 
     fun develocityBuildScanReporting(
@@ -75,7 +75,7 @@ class BuildScanReport(
         // Scan tags for fast categorical filtering in DRV.
         tags.forEach { buildScanData.tag(it) }
 
-        if (publishGbos) {
+        if (publishGbos.get()) {
             GbosDevelocityProjection.publish(report, buildScanData)
         }
     }

@@ -8,9 +8,12 @@ import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 
 class BuildScanReportTest {
+    private val project = ProjectBuilder.builder().build()
+
     private val processes = mapOf(
         13402L to TestProcess(task = ":core:test", executor = "Gradle Test Executor 5", max = "512m")
     )
@@ -36,7 +39,8 @@ class BuildScanReportTest {
     fun gbosDevelocityProjectionIsDisabledByDefault() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport().extracted(ReportDocument.from(processes, runtimeStats, Stats()), scanData)
+        BuildScanReport(publishGbos = project.providers.provider { false })
+            .extracted(ReportDocument.from(processes, runtimeStats, Stats()), scanData)
 
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
         assert(scanData.values.none { it.first == "gbos.v1.observation" })
@@ -47,7 +51,8 @@ class BuildScanReportTest {
     fun emitsCanonicalGbosObservationValuesWhenEnabled() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport(publishGbos = project.providers.provider { true })
+            .extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
@@ -89,7 +94,8 @@ class BuildScanReportTest {
     fun emitsOnlyAllowlistedScalarIndexesFromBuildLevelMeasurements() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport(publishGbos = project.providers.provider { true })
+            .extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
@@ -126,7 +132,8 @@ class BuildScanReportTest {
         )
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport(publishGbos = project.providers.provider { true })
+            .extracted(
             ReportDocument.from(processes, heavyStats, Stats()),
             scanData
         )
@@ -141,7 +148,8 @@ class BuildScanReportTest {
     fun omitsMissingSnapshotSentinelsFromGbosObservations() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport(publishGbos = project.providers.provider { true })
+            .extracted(
             ReportDocument.from(processes, emptyMap(), Stats(statsSnapshotsMissing = 1)),
             scanData
         )
@@ -158,6 +166,21 @@ class BuildScanReportTest {
         assert(observations.none { it["aggregationScope"]!!.jsonPrimitive.content == "build" })
         assert(scanData.values.none { it.first.startsWith("gbos.v1.index.") })
         assert("-1" !in entity.toString())
+    }
+
+    @Test
+    fun resolvesGbosOptInLazilyWhenReportIsExtracted() {
+        var evaluations = 0
+        val publishGbos = project.providers.provider {
+            evaluations++
+            true
+        }
+
+        val report = BuildScanReport(publishGbos)
+        assert(evaluations == 0)
+
+        report.extracted(ReportDocument.from(processes, runtimeStats, Stats()), RecordingBuildScanData())
+        assert(evaluations == 1)
     }
 
     private fun String.asJsonObject(): JsonObject = ReportJson.json.parseToJsonElement(this).jsonObject

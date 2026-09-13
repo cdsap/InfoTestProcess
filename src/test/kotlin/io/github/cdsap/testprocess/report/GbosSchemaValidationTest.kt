@@ -8,10 +8,13 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 import java.io.File
 
 class GbosSchemaValidationTest {
+    private val project = ProjectBuilder.builder().build()
+
     private val processes = mapOf(
         13402L to TestProcess(task = ":core:test", executor = "Gradle Test Executor 5", max = "512m")
     )
@@ -36,7 +39,8 @@ class GbosSchemaValidationTest {
     @Test
     fun generatedJsonNdjsonAndDevelocityExamplesValidateAgainstPublicContract() {
         val scanData = RecordingBuildScanData()
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport(publishGbos = project.providers.provider { true })
+            .extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
@@ -119,7 +123,8 @@ class GbosSchemaValidationTest {
     @Test
     fun disabledByDefaultProducesNoGbosArtifactsToValidate() {
         val scanData = RecordingBuildScanData()
-        BuildScanReport().extracted(
+        BuildScanReport(publishGbos = project.providers.provider { false })
+            .extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
