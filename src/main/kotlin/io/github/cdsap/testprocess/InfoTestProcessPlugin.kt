@@ -58,20 +58,20 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             val service = gradle.sharedServices.registerIfAbsent(
                 "statsBuildService", StatsBuildService::class.java
             ) {
-                parameters.path = persistedTxt.map { it.asFile }
-                parameters.pathJson = persistedJson.map { it.asFile }
-                parameters.pathGbosJson = gbosJson.map { it.asFile }
-                parameters.pathGbosNdjson = gbosNdjson.map { it.asFile }
-                parameters.registryDir = registryDir.map { it.asFile }
-                parameters.agentJar = agentJar.map { it.asFile }
-                parameters.develocity = providers.provider {
+                parameters.persistedTxt.set(persistedTxt)
+                parameters.persistedJson.set(persistedJson)
+                parameters.gbosJson.set(gbosJson)
+                parameters.gbosNdjson.set(gbosNdjson)
+                parameters.registryDir.set(registryDir)
+                parameters.agentJar.set(agentJar)
+                parameters.develocity.set(providers.provider {
                     DevelocityReporting.reportToDevelocity(
                         develocityOnClasspath,
                         infoTestProcess.develocity.enabled.get()
                     )
-                }
-                parameters.gbosJsonOutput = infoTestProcess.gbos.json
-                parameters.gbosNdjsonOutput = infoTestProcess.gbos.ndjson
+                })
+                parameters.gbosJsonOutput.set(infoTestProcess.gbos.json)
+                parameters.gbosNdjsonOutput.set(infoTestProcess.gbos.ndjson)
             }
 
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {

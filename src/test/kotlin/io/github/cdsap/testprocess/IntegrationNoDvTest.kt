@@ -88,6 +88,23 @@ class IntegrationNoDvTest {
     }
 
     @Test
+    fun testFilesUseCustomBuildDirectory() {
+        createProject(
+            buildExtra = "layout.buildDirectory = layout.projectDirectory.dir('custom-build')"
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments("test", "--configuration-cache")
+            .withPluginClasspath()
+            .withGradleVersion("9.7.1")
+            .build()
+
+        assertTrue(File("${testProjectDir.root}/custom-build/info-test-process/statsTestTasks.json").exists())
+        assertTrue(!File("${testProjectDir.root}/build/info-test-process/statsTestTasks.json").exists())
+    }
+
+    @Test
     fun gbosFilesAreGeneratedOnlyWhenOptedIn() {
 
         createProject(
@@ -159,7 +176,8 @@ class IntegrationNoDvTest {
 
     private fun createProject(
         extraGradleProperties: String = "",
-        settingsExtra: String = ""
+        settingsExtra: String = "",
+        buildExtra: String = ""
     ) {
         testProjectDir.newFile("settings.gradle").appendText(
             """
@@ -183,6 +201,7 @@ class IntegrationNoDvTest {
                         id 'org.jetbrains.kotlin.jvm' version '2.2.0'
                         id 'application'
                     }
+                    $buildExtra
                     repositories {
                         mavenCentral()
                     }

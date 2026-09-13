@@ -5,7 +5,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     `kotlin-dsl`
-    id("com.gradle.plugin-publish") version "2.1.1"
+    id("com.gradle.plugin-publish") version "2.2.1"
     kotlin("plugin.serialization") version "2.4.10"
 
 }
@@ -31,8 +31,8 @@ val develocityPluginClasspath by configurations.creating {
 }
 
 dependencies {
-    compileOnly("com.gradle:develocity-gradle-plugin:4.5.0")
-    develocityPluginClasspath("com.gradle:develocity-gradle-plugin:4.5.0")
+    compileOnly("com.gradle:develocity-gradle-plugin:4.5.1")
+    develocityPluginClasspath("com.gradle:develocity-gradle-plugin:4.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
 }
@@ -48,6 +48,9 @@ tasks.named<PluginUnderTestMetadata>("pluginUnderTestMetadata") {
 }
 
 val agentJar = tasks.register<Jar>("agentJar") {
+    group = "build"
+    description =
+        "Builds the java agent jar that is bundled into the plugin and injected into consumer test workers."
     archiveBaseName.set("info-test-process-agent")
     archiveVersion.set("")
     from(sourceSets["agent"].output)

@@ -40,7 +40,10 @@ class GbosSchemaValidationTest {
     fun generatedJsonNdjsonAndDevelocityExamplesValidateAgainstPublicContract() {
         val scanData = RecordingBuildScanData()
         BuildScanReport(publishGbos = project.providers.provider { true })
-            .extracted(processes, runtimeStats, Stats(), scanData)
+            .extracted(
+            ReportDocument.from(processes, runtimeStats, Stats()),
+            scanData
+        )
 
         val gbosValues = scanData.values.filter { it.first.startsWith("gbos.v1.") }
         assert(gbosValues.isNotEmpty()) { "expected generated GBOS Develocity values" }
@@ -121,7 +124,10 @@ class GbosSchemaValidationTest {
     fun disabledByDefaultProducesNoGbosArtifactsToValidate() {
         val scanData = RecordingBuildScanData()
         BuildScanReport(publishGbos = project.providers.provider { false })
-            .extracted(processes, runtimeStats, Stats(), scanData)
+            .extracted(
+            ReportDocument.from(processes, runtimeStats, Stats()),
+            scanData
+        )
 
         assert(scanData.values.none { it.first.startsWith("gbos.v1.") })
         assert(scanData.values.any { it.first.startsWith("testProcess.") })
