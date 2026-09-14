@@ -344,3 +344,6 @@ execution time (after CC restoration).
 - Optional: Develocity, if you want the data on Build Scans
 
 ![](images/buildscan.png)
+
+### Trademark Notice
+Gradle®, Develocity®, Build Scan®, and Gradle Enterprise® are registered trademarks of Gradle, Inc.
