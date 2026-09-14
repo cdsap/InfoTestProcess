@@ -19,10 +19,10 @@ internal object DevelocityReporting {
     fun configureConventions(
         extension: DevelocityReportingExtension,
         providers: ProviderFactory,
-        develocityOnClasspath: Boolean
+        develocityPresent: Provider<Boolean>
     ) {
         extension.enabled.convention(
-            optionalBooleanProperty(providers, PROPERTY_ENABLED).orElse(develocityOnClasspath)
+            optionalBooleanProperty(providers, PROPERTY_ENABLED).orElse(develocityPresent)
         )
     }
 
