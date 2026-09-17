@@ -8,7 +8,7 @@ import java.util.Properties
 
 // Requires org.gradle.caching=true so local and CI builds reuse task outputs.
 class GradleBuildCacheTest {
-    private val gradleProperties = File("gradle.properties")
+    private val gradleProperties = File("../gradle.properties")
 
     @Test
     fun buildCacheIsEnabled() {

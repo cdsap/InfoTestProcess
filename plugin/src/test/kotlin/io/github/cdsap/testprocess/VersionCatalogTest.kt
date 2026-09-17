@@ -7,7 +7,7 @@ import java.io.File
 
 // Keeps dependency and plugin versions in gradle/libs.versions.toml (not inline in build scripts).
 class VersionCatalogTest {
-    private val catalog = File("gradle/libs.versions.toml")
+    private val catalog = File("../gradle/libs.versions.toml")
     private val buildScript = File("build.gradle.kts")
 
     @Test
@@ -52,28 +52,28 @@ class VersionCatalogTest {
     }
 
     @Test
-    fun rootBuildScriptUsesVersionCatalogAliases() {
-        assertTrue("build.gradle.kts must exist", buildScript.isFile)
+    fun pluginBuildScriptUsesVersionCatalogAliases() {
+        assertTrue("plugin/build.gradle.kts must exist", buildScript.isFile)
 
         val script = buildScript.readText()
         assertTrue(
-            "root build must apply plugin-publish via catalog alias",
+            "plugin build must apply plugin-publish via catalog alias",
             script.contains("alias(libs.plugins.pluginPublish)")
         )
         assertTrue(
-            "root build must apply kotlin serialization via catalog alias",
+            "plugin build must apply kotlin serialization via catalog alias",
             script.contains("alias(libs.plugins.kotlin.serialization)")
         )
         assertTrue(
-            "root build must depend on develocity via catalog",
+            "plugin build must depend on develocity via catalog",
             script.contains("libs.develocity.gradlePlugin")
         )
         assertTrue(
-            "root build must depend on kotlinx-serialization-json via catalog",
+            "plugin build must depend on kotlinx-serialization-json via catalog",
             script.contains("libs.kotlinx.serializationJson")
         )
         assertTrue(
-            "root build must depend on junit via catalog",
+            "plugin build must depend on junit via catalog",
             script.contains("libs.junit")
         )
 

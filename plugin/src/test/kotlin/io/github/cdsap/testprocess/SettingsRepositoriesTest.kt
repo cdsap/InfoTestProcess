@@ -7,7 +7,7 @@ import org.junit.Test
 import java.io.File
 
 class SettingsRepositoriesTest {
-    private val settings = File("settings.gradle.kts")
+    private val settings = File("../settings.gradle.kts")
 
     @Test
     fun settingsDoesNotDeclareGoogleRepository() {

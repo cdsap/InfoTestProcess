@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 develocity = "4.5.1"
 serialization = "1.11.0"
 junit = "4.13.2"

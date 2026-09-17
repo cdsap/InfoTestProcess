@@ -10,7 +10,7 @@ import java.io.File
  * action (v4+) or setup-gradle (v4+), which validates as a side effect.
  */
 class CiWrapperValidationTest {
-    private val workflowFile = File(".github/workflows/build.yaml")
+    private val workflowFile = File("../.github/workflows/build.yaml")
 
     private val wrapperValidation =
         Regex("""uses:\s*gradle/actions/wrapper-validation@v([4-9]|\d{2,})""")
