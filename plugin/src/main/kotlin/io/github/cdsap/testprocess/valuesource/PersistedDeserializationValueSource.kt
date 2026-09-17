@@ -15,7 +15,7 @@ abstract class PersistedDeserializationValueSource :
     ValueSource<PersistedState, PersistedDeserializationValueSource.Params> {
     interface Params : ValueSourceParameters {
         @get:InputFile
-        @get:PathSensitive(PathSensitivity.RELATIVE)
+        @get:PathSensitive(PathSensitivity.NONE)
         val file: RegularFileProperty
     }
 
