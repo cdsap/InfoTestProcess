@@ -11,7 +11,7 @@ import java.io.File
 class DevelocityCiWiringTest {
     @Test
     fun settingsAppliesDevelocityAndReadsCiCredentials() {
-        val settings = File("settings.gradle.kts").readText()
+        val settings = File("../settings.gradle.kts").readText()
         assertTrue(
             "settings.gradle.kts must apply com.gradle.develocity so CI can publish Build Scans",
             settings.contains("""id("com.gradle.develocity")""")
@@ -32,7 +32,7 @@ class DevelocityCiWiringTest {
 
     @Test
     fun workflowInjectsGeCredentialsIntoProjectBuild() {
-        val workflow = File(".github/workflows/build.yaml").readText()
+        val workflow = File("../.github/workflows/build.yaml").readText()
         assertTrue(
             "CI must still inject GE_URL for the project Gradle build",
             workflow.contains("GE_URL: \${{ secrets.GE_URL }}")

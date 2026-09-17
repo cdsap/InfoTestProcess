@@ -9,7 +9,7 @@ import java.util.Properties
 // The published plugin advertises configurationCache compatibility; the plugin's
 // own build should enable the configuration cache by default (issue #131).
 class GradlePropertiesConfigurationCacheTest {
-    private val gradleProperties = File("gradle.properties")
+    private val gradleProperties = File("../gradle.properties")
 
     @Test
     fun configurationCacheIsEnabledInGradleProperties() {

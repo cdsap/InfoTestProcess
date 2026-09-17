@@ -44,3 +44,5 @@ develocity {
 }
 
 rootProject.name = "InfoTestProcess"
+
+include("plugin")

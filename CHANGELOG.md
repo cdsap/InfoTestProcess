@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Build
+
+- Moved plugin sources into a `:plugin` subproject so the root project holds
+  build-wide configuration only (Gradle best practice: no sources in root).
+
 ### Experimental — GBOS opt-in Develocity projection
 
 - Added an **experimental, opt-in** GBOS (Gradle Build Observability Schema)

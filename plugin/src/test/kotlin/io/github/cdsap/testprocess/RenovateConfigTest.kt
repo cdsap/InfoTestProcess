@@ -15,7 +15,7 @@ import org.junit.Test
 import java.io.File
 
 class RenovateConfigTest {
-    private val projectRoot = File(".").canonicalFile
+    private val projectRoot = File("..").canonicalFile
     private val githubConfig = File(projectRoot, ".github/renovate.json")
     private val rootConfig = File(projectRoot, "renovate.json")
 
