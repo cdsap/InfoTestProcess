@@ -18,7 +18,7 @@ class CompatibilityWorkflowTest {
         val entries = parseMatrixInclude(workflow)
         assertEquals(
             listOf(
-                MatrixEntry("e2e/consumer", "8.0.2", "17"),
+                MatrixEntry("e2e/consumer", "8.2", "17"),
                 MatrixEntry("e2e/consumer", "8.14.3", "17"),
                 MatrixEntry("e2e/consumer", "8.14.3", "21"),
                 MatrixEntry("e2e/consumer", "9.7.1", "17"),

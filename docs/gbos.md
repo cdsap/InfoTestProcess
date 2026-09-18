@@ -26,7 +26,7 @@ With no GBOS properties set, builds behave exactly as before: only legacy `testP
 - **Legacy keys are retained** for the current major line: `testProcess.*` custom values, existing scan tags (`tests:cpu-heavy`, `tests:near-oom`, `tests:jit-bound`, `tests:no-snapshot`), and the non-Develocity `statsTestTasks.json` document keep their current shapes.
 - GBOS observations use base units (bytes, seconds, `{core}`, …) and store identity (PID, task path, executor) in observation `attributes`, never in custom-value names.
 - Missing runtime snapshots omit unavailable measurements and may emit diagnostics instead of sentinel values such as `0` / `-1`.
-- Schema validation runs in plugin **tests/CI only** against a vendored snapshot of `cdsap/build-observability-schema`. The plugin does **not** ship a runtime JSON Schema dependency.
+- Schema validation runs in plugin **tests/CI only** against the published `io.github.cdsap:build-observability-schema` artifact. The plugin does **not** ship a runtime JSON Schema dependency.
 
 ## Develocity projection
 

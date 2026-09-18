@@ -28,6 +28,8 @@ dependencies {
     implementation("com.gradle:develocity-gradle-plugin:4.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("io.github.cdsap:build-observability-schema:0.0.2")
+    testImplementation("com.networknt:json-schema-validator:1.5.9")
 }
 
 val agentJar = tasks.register<Jar>("agentJar") {

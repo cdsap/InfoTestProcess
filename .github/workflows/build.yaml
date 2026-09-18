@@ -135,7 +135,7 @@ jobs:
                 include:
                     # Minimum supported Gradle
                     - project: e2e/consumer
-                      gradle: "8.0.2"
+                      gradle: "8.2"
                       java: "17"
 
                     # Latest Gradle 8.x
