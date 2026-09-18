@@ -9,16 +9,19 @@ object WorkerStateCollector {
     fun collect(
         registryEntries: Collection<WorkerRegistryEntry>,
         runtimeStatsEntries: Collection<WorkerRuntimeStats>,
-        processes: MutableMap<Long, TestProcess>,
+        processes: Map<Long, TestProcess>,
         stats: Stats
     ): PersistedState {
+        val processesSnapshot = processes.toMutableMap()
         registryEntries.forEach { entry ->
-            processes.putIfAbsent(entry.pid, WorkerIdentityMapper.toTestProcess(entry))
+            processesSnapshot.putIfAbsent(entry.pid, WorkerIdentityMapper.toTestProcess(entry))
         }
         val runtimeStats: Map<Long, WorkerRuntimeStats> =
             runtimeStatsEntries.associateBy { it.pid }
-        stats.statsSnapshotsCaptured = runtimeStats.size
-        stats.statsSnapshotsMissing = processes.keys.count { it !in runtimeStats }
-        return PersistedState(processes, runtimeStats, stats)
+        val statsSnapshot = stats.copy(
+            statsSnapshotsCaptured = runtimeStats.size,
+            statsSnapshotsMissing = processesSnapshot.keys.count { it !in runtimeStats }
+        )
+        return PersistedState(processesSnapshot, runtimeStats, statsSnapshot)
     }
 }

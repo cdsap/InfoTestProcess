@@ -56,10 +56,14 @@ class WorkerStateCollectorTest {
         assert(state.runtimeStats[10L]?.gcType == "G1")
         assert(20L !in state.runtimeStats)
 
-        assert(stats.statsSnapshotsCaptured == 1)
-        assert(stats.statsSnapshotsMissing == 1)
-        assert(state.stats === stats)
-        assert(state.processes === processes)
+        assert(state.stats.totalProcesses == 2)
+        assert(state.stats.statsSnapshotsCaptured == 1)
+        assert(state.stats.statsSnapshotsMissing == 1)
+        assert(stats.statsSnapshotsCaptured == 0)
+        assert(stats.statsSnapshotsMissing == 0)
+        assert(processes.isEmpty())
+        assert(state.stats !== stats)
+        assert(state.processes !== processes)
     }
 
     @Test
@@ -81,8 +85,14 @@ class WorkerStateCollectorTest {
 
         assert(state.processes[5L] === existing)
         assert(state.processes[5L]?.task == ":already:tracked")
+        assert(state.stats.statsSnapshotsCaptured == 0)
+        assert(state.stats.statsSnapshotsMissing == 1)
         assert(stats.statsSnapshotsCaptured == 0)
-        assert(stats.statsSnapshotsMissing == 1)
+        assert(stats.statsSnapshotsMissing == 0)
+        assert(processes.size == 1)
+        assert(processes[5L] === existing)
+        assert(state.processes !== processes)
+        assert(state.stats !== stats)
     }
 
     @Test
@@ -110,5 +120,6 @@ class WorkerStateCollectorTest {
         assert(state.processes[7L]?.max == "512m")
         assert(state.processes[8L]?.executor == "Gradle Test Executor 2")
         assert(state.processes[8L]?.max == "1g")
+        assert(processes.isEmpty())
     }
 }
