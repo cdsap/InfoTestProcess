@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.junit.Test
 import java.io.File
@@ -32,6 +33,28 @@ class GbosSchemaValidationTest {
             peakThreads = 10
         )
     )
+
+    @Test
+    fun publishedContractResourcesResolveFromMavenArtifactClasspath() {
+        val loader = javaClass.classLoader
+        assert(loader.getResource("gbos/schema/report.schema.json") == null) {
+            "schema files must not be copied into src/test/resources"
+        }
+        listOf(
+            "schema/report.schema.json",
+            "schema/observation.schema.json",
+            "schema/observation-batch.schema.json",
+            "schema/develocity-projection.schema.json",
+            "registry/semantic-conventions.json",
+            "registry/develocity-indexes.json"
+        ).forEach { path ->
+            assert(loader.getResource(path) != null) {
+                "expected $path on the test classpath from build-observability-schema"
+            }
+        }
+        // Loading initializes schemas and validates registry documents (including relative $ref).
+        GbosContract.load()
+    }
 
     @Test
     fun generatedJsonNdjsonAndDevelocityExamplesValidateAgainstPublicContract() {
@@ -69,6 +92,32 @@ class GbosSchemaValidationTest {
             put("observations", JsonArray(observations))
         }
         schema.validateReport(reportDocument)
+
+        val producer = observations.first()["producer"]!!.jsonObject
+        val batchDocument = buildJsonObject {
+            put("schemaVersion", "1.0.0")
+            put("producer", producer)
+            put(
+                "observations",
+                buildJsonArray {
+                    observations.forEach { observation ->
+                        add(
+                            buildJsonObject {
+                                put("scope", observation["scope"]!!.jsonPrimitive.content)
+                                put(
+                                    "aggregationScope",
+                                    observation["aggregationScope"]!!.jsonPrimitive.content
+                                )
+                                put("attributes", observation["attributes"]!!)
+                                observation["measurements"]?.let { put("measurements", it) }
+                                observation["diagnostics"]?.let { put("diagnostics", it) }
+                            }
+                        )
+                    }
+                }
+            )
+        }
+        schema.validateBatch(batchDocument)
 
         val ndjson = observationJson.joinToString("\n")
         val ndjsonFile = File.createTempFile("gbos-schema", ".ndjson")
@@ -114,6 +163,24 @@ class GbosSchemaValidationTest {
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
         assert(scanData.values.any { it.first == "testProcess.worker.13402" })
         assert(scanData.values.none { it.first.startsWith("gbos.v1.") && "13402" in it.first })
+    }
+
+    @Test
+    fun deliberatelyInvalidDocumentIsRejectedByPublishedSchema() {
+        val schema = GbosContract.load()
+        val invalid = buildJsonObject {
+            put("schemaVersion", "9.9.9")
+            put("resource", buildJsonObject { put("build.tool.name", "gradle") })
+            put("observations", buildJsonArray { })
+        }
+        var rejected = false
+        try {
+            schema.validateReport(invalid)
+        } catch (error: AssertionError) {
+            rejected = true
+            assert("failed published schema validation" in error.message.orEmpty())
+        }
+        assert(rejected) { "expected invalid report to fail schema validation" }
     }
 
     @Test
