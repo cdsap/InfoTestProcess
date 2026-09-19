@@ -1,5 +1,6 @@
 import org.gradle.plugin.compatibility.compatibility
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
+import org.gradle.api.attributes.java.TargetJvmVersion
 
 plugins {
     `java-gradle-plugin`
@@ -35,10 +36,28 @@ val develocityPluginClasspath by configurations.creating {
 }
 
 dependencies {
+    // Resource-only contract jar is published with org.gradle.jvm.version=23; rewrite so
+    // the Java 17 plugin toolchain can resolve it for tests without raising runtime bytecode.
+    components {
+        withModule("io.github.cdsap:build-observability-schema") {
+            allVariants {
+                attributes {
+                    attribute(
+                        TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                        8
+                    )
+                }
+            }
+        }
+    }
+
     compileOnly(libs.develocity.gradlePlugin)
     develocityPluginClasspath(libs.develocity.gradlePlugin)
     implementation(libs.kotlinx.serializationJson)
     testImplementation(libs.junit)
+    // GBOS contract validation is test/CI only — keep schemas off the plugin runtime classpath.
+    testImplementation(libs.build.observability.schema)
+    testImplementation(libs.json.schema.validator)
 }
 
 tasks.test {

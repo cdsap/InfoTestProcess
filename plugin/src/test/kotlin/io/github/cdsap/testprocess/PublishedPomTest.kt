@@ -18,6 +18,19 @@ class PublishedPomTest {
     }
 
     @Test
+    fun pluginMavenPomDoesNotDeclareGbosSchemaTestDependencies() {
+        val xml = readPluginMavenPom()
+        assertFalse(
+            "build-observability-schema is test-only and must not appear in the published plugin POM",
+            xml.contains("build-observability-schema")
+        )
+        assertFalse(
+            "json-schema-validator is test-only and must not appear in the published plugin POM",
+            xml.contains("json-schema-validator")
+        )
+    }
+
+    @Test
     fun pluginMavenPomCarriesProjectMetadata() {
         val xml = readPluginMavenPom()
         assertTrue("POM name", xml.contains("<name>InfoTestProcess</name>"))
