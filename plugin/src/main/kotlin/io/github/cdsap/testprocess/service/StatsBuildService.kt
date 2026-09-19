@@ -2,13 +2,11 @@ package io.github.cdsap.testprocess.service
 
 import io.github.cdsap.testprocess.agent.WorkerRegistry
 import io.github.cdsap.testprocess.agent.WorkerStateCollector
-import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
-import io.github.cdsap.testprocess.report.GbosOutputReport
-import io.github.cdsap.testprocess.report.OutputReport
 import io.github.cdsap.testprocess.report.ReportDocument
-import kotlinx.serialization.json.Json
+import io.github.cdsap.testprocess.report.StatsReportOutputOptions
+import io.github.cdsap.testprocess.report.StatsReportWriter
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -53,29 +51,18 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
             stats
         )
         val report = ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats)
-        if (parameters.develocity.get()) {
-            val output = parameters.persistedTxt.get().asFile
-            output.parentFile?.mkdirs()
-            output.writeText(Json.encodeToString(PersistedState.serializer(), payload))
-        } else {
-            val outputJson = parameters.persistedJson.get().asFile
-            outputJson.parentFile?.mkdirs()
-            OutputReport(outputJson).write(report)
-        }
-        val writeGbosJson = parameters.gbosJsonOutput.get()
-        val writeGbosNdjson = parameters.gbosNdjsonOutput.get()
-        if (writeGbosJson || writeGbosNdjson) {
-            GbosOutputReport(
-                parameters.gbosJson.get().asFile,
-                parameters.gbosNdjson.get().asFile
-            ).write(
-                report,
-                writeJson = writeGbosJson,
-                writeNdjson = writeGbosNdjson
+        StatsReportWriter().write(
+            report,
+            payload,
+            StatsReportOutputOptions(
+                develocity = parameters.develocity.get(),
+                persistedTxt = parameters.persistedTxt.get().asFile,
+                persistedJson = parameters.persistedJson.get().asFile,
+                gbosJson = parameters.gbosJson.get().asFile,
+                gbosNdjson = parameters.gbosNdjson.get().asFile,
+                writeGbosJson = parameters.gbosJsonOutput.get(),
+                writeGbosNdjson = parameters.gbosNdjsonOutput.get()
             )
-        } else {
-            parameters.gbosJson.get().asFile.delete()
-            parameters.gbosNdjson.get().asFile.delete()
-        }
+        )
     }
 }
