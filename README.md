@@ -331,7 +331,7 @@ it adds nothing to the worker's bootclasspath beyond a single ~5 KB class file.
 | `--configuration-cache` (basic) | ✅ Stored on first build, reused on subsequent builds |
 | `--configuration-cache-problems=fail` (strict) | ✅ No problems reported |
 | `-Dorg.gradle.unsafe.isolated-projects=true` (Isolated Projects) | ✅ |
-| Gradle 8.x, 9.x | ✅ Both verified in the integration test suite |
+| Gradle 8.2+, 9.x | ✅ Both verified in the integration test suite |
 
 The plugin does no filesystem I/O at apply time — agent jar extraction and registry
 directory setup are deferred to a `BuildService` `init` block, which runs at task
@@ -339,7 +339,7 @@ execution time (after CC restoration).
 
 ## Requirements
 
-- Gradle 8 or later
+- Gradle 8.2 or later (8.0.x and 8.1.x are unsupported)
 - Test workers running JDK 17 or later (the bundled Java agent is compiled to Java 17 bytecode)
 - Optional: Develocity, if you want the data on Build Scans
 

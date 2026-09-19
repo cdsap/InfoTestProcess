@@ -187,11 +187,11 @@ internal class GbosContract(
         private val DEFAULT_TAG = Regex("^gbos:v1:[a-z0-9][a-z0-9:-]*$")
 
         fun load(): GbosContract {
-            val reportSchema = resourceJson("gbos/schema/report.schema.json")
-            val observationSchema = resourceJson("gbos/schema/observation.schema.json")
-            val develocitySchema = resourceJson("gbos/schema/develocity-projection.schema.json")
-            val conventions = resourceJson("gbos/registry/semantic-conventions.json")
-            val develocityIndexes = resourceJson("gbos/registry/develocity-indexes.json")
+            val reportSchema = resourceJson("schema/report.schema.json")
+            val observationSchema = resourceJson("schema/observation.schema.json")
+            val develocitySchema = resourceJson("schema/develocity-projection.schema.json")
+            val conventions = resourceJson("registry/semantic-conventions.json")
+            val develocityIndexes = resourceJson("registry/develocity-indexes.json")
             return GbosContract(
                 reportRequired = required(reportSchema),
                 observationRequired = required(observationSchema),

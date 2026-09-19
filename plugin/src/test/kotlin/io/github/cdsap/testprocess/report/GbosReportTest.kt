@@ -254,10 +254,10 @@ class GbosReportTest {
 
         companion object {
             fun load(): GbosContract {
-                val reportSchema = resourceJson("gbos/schema/report.schema.json")
-                val observationSchema = resourceJson("gbos/schema/observation.schema.json")
-                val conventions = resourceJson("gbos/registry/semantic-conventions.json")
-                val develocityIndexes = resourceJson("gbos/registry/develocity-indexes.json")
+                val reportSchema = resourceJson("schema/report.schema.json")
+                val observationSchema = resourceJson("schema/observation.schema.json")
+                val conventions = resourceJson("registry/semantic-conventions.json")
+                val develocityIndexes = resourceJson("registry/develocity-indexes.json")
                 return GbosContract(
                     reportRequired = required(reportSchema),
                     observationRequired = required(observationSchema),
