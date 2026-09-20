@@ -1,30 +1,8 @@
 package io.github.cdsap.testprocess.report
 
-import com.gradle.develocity.agent.gradle.DevelocityConfiguration
-import io.github.cdsap.testprocess.model.PersistedState
-import org.gradle.api.provider.Provider
-
 class BuildScanReport(
     private val publishGbos: Boolean = false
 ) {
-
-    fun develocityBuildScanReporting(
-        develocityConfiguration: DevelocityConfiguration,
-        provider: Provider<PersistedState>
-    ) {
-        develocityConfiguration.buildScan {
-            val develocityValue = DevelocityValue(this)
-            buildFinished {
-                if (provider.isPresent) {
-                    val state = provider.get()
-                    extracted(
-                        ReportDocument.from(state.processes, state.runtimeStats, state.stats),
-                        develocityValue
-                    )
-                }
-            }
-        }
-    }
 
     fun extracted(
         report: ReportDocument,

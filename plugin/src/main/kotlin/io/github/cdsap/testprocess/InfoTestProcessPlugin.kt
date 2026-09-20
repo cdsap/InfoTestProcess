@@ -1,7 +1,6 @@
 package io.github.cdsap.testprocess
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
-import io.github.cdsap.testprocess.report.BuildScanReport
 import io.github.cdsap.testprocess.service.StatsBuildService
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -89,8 +88,8 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             // fires immediately if Develocity was applied before this plugin.
             target.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
                 if (infoTestProcess.develocity.enabled.get()) {
-                    BuildScanReport(infoTestProcess.gbos.develocity.get())
-                        .develocityBuildScanReporting(
+                    DevelocityBuildScanAdapter(infoTestProcess.gbos.develocity.get())
+                        .register(
                             target.extensions.getByType(DevelocityConfiguration::class.java),
                             persistedStateProvider
                         )
