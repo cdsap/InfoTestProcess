@@ -18,7 +18,9 @@
 - Legacy keys and tags are **retained** for this major version while GBOS is
   dual-published when enabled.
 - Schema validation of generated GBOS observation / report / NDJSON / Develocity
-  examples runs in tests/CI via a vendored snapshot of
-  [`cdsap/build-observability-schema`](https://github.com/cdsap/build-observability-schema);
-  the plugin does not depend on JSON Schema at runtime.
+  examples runs in tests/CI against the released
+  [`io.github.cdsap:build-observability-schema`](https://github.com/cdsap/build-observability-schema)
+  Maven Central artifact (test-only dependency + Draft 2020-12 JSON Schema
+  validator); schema resources are not vendored and are not on the plugin runtime
+  classpath.
 - Adoption notes: [docs/gbos.md](docs/gbos.md).

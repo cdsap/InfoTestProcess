@@ -184,9 +184,10 @@ The NDJSON sink writes compact observations, one per line, to
 `${rootDir}/build/info-test-process/gbos.ndjson`. Both file outputs are generated
 from the same internal GBOS observation model used by the Develocity projection.
 
-Generated GBOS examples are validated in CI against the public schema contract
-(test-only; not a runtime dependency). See [docs/gbos.md](docs/gbos.md) for
-opt-in flags, compatibility rules, and legacy key retention.
+Generated GBOS examples are validated in CI against the released
+`build-observability-schema` Maven Central contract (test-only; not a runtime
+dependency). See [docs/gbos.md](docs/gbos.md) for opt-in flags, compatibility
+rules, and legacy key retention.
 
 #### Scan tags
 
