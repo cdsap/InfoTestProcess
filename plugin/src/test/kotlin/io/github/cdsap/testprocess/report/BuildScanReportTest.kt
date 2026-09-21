@@ -57,23 +57,15 @@ class BuildScanReportTest {
             .map { it.second.asJsonObject() }
 
         assert(observations.size == 2)
-        val batches = scanData.values.filter { it.first == "gbos.v1.observations" }
-        assert(batches.size == 1)
-        val batch = batches.single().second.asJsonObject()
-        assert(batch["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
-        assert(batch["producer"]!!.jsonObject["name"]!!.jsonPrimitive.content == "info-test-process")
-        assert(batch["observations"]!!.jsonArray.size == 2)
-        assert(batch["observations"]!!.jsonArray.all { observation ->
-            observation.jsonObject.keys.none { it == "schemaVersion" || it == "producer" }
-        })
+        assert(scanData.values.single { it.first == "gbos.schema" }.second == "1.0.0")
+        assert(scanData.values.single { it.first == "gbos.version" }.second == "0.0.3")
+        assert(scanData.values.single { it.first == "gbos.producer" }.second == "info-test-process")
         assert(scanData.values.filter { it.first.startsWith("gbos.v1.") }.all { (name, _) ->
             "13402" !in name &&
                 ":core:test" !in name &&
                 "Gradle Test Executor 5" !in name
         })
-        assert(observations.all { it["schemaVersion"]!!.jsonPrimitive.content == "1.0.0" })
-        assert(observations.all { it["producer"]!!.jsonObject["name"]!!.jsonPrimitive.content == "info-test-process" })
-        assert(observations.all { it["producer"]!!.jsonObject["version"]!!.jsonPrimitive.content == "2.1.0" })
+        assert(observations.all { it.keys.none { key -> key == "schemaVersion" || key == "producer" } })
         assert(observations.all { it["scope"]!!.jsonPrimitive.content == "jvm.process" })
 
         val entity = observations.single { it["aggregationScope"]!!.jsonPrimitive.content == "entity" }

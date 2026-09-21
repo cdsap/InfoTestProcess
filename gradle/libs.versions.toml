@@ -3,7 +3,7 @@ kotlin = "2.4.20"
 develocity = "4.5.1"
 serialization = "1.11.0"
 junit = "4.13.2"
-buildObservabilitySchema = "0.0.2"
+buildObservabilitySchema = "0.0.3"
 jsonSchemaValidator = "2.0.7"
 
 [libraries]

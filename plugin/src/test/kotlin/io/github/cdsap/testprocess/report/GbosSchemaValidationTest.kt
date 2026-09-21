@@ -45,6 +45,7 @@ class GbosSchemaValidationTest {
             "schema/report.schema.json",
             "schema/observation.schema.json",
             "schema/observation-batch.schema.json",
+            "schema/observation-fragment.schema.json",
             "schema/develocity-projection.schema.json",
             "registry/semantic-conventions.json",
             "registry/develocity-indexes.json"
@@ -65,21 +66,16 @@ class GbosSchemaValidationTest {
             scanData
         )
 
-        val gbosValues = scanData.values.filter { it.first.startsWith("gbos.v1.") }
+        val gbosValues = scanData.values.filter { it.first.startsWith("gbos.") }
         assert(gbosValues.isNotEmpty()) { "expected generated GBOS Develocity values" }
         val schema = GbosContract.load()
 
-        val batches = gbosValues
-            .filter { it.first == "gbos.v1.observations" }
-            .map { ReportJson.json.parseToJsonElement(it.second).jsonObject }
-        assert(batches.size == 1)
-        val batch = batches.single()
-        schema.validateBatch(batch)
-        assert(batch["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
-        assert(batch["producer"]!!.jsonObject["name"]!!.jsonPrimitive.content == "info-test-process")
-        assert(batch["observations"]!!.jsonArray.all { observation ->
-            observation.jsonObject.keys.none { it == "schemaVersion" || it == "producer" }
-        })
+        assert(gbosValues.count { it.first == "gbos.schema" } == 1)
+        assert(gbosValues.single { it.first == "gbos.schema" }.second == "1.0.0")
+        assert(gbosValues.count { it.first == "gbos.version" } == 1)
+        assert(gbosValues.single { it.first == "gbos.version" }.second == "0.0.3")
+        assert(gbosValues.count { it.first == "gbos.producer" } == 1)
+        assert(gbosValues.single { it.first == "gbos.producer" }.second == "info-test-process")
 
         val observationJson = gbosValues
             .filter { it.first == "gbos.v1.observation" }
@@ -90,9 +86,20 @@ class GbosSchemaValidationTest {
             ReportJson.json.parseToJsonElement(it).jsonObject
         }
         observations.forEachIndexed { index, observation ->
-            schema.validateObservation(observation, "observation[$index]")
+            assert(observation.keys.none { it == "schemaVersion" || it == "producer" })
+            schema.validateObservationFragment(observation, "observation[$index]")
         }
 
+        val standaloneObservations = observations.map { observation ->
+            buildJsonObject {
+                put("schemaVersion", "1.0.0")
+                put("producer", buildJsonObject {
+                    put("name", "info-test-process")
+                    put("version", "2.1.0")
+                })
+                observation.forEach { (key, value) -> put(key, value) }
+            }
+        }
         val reportDocument = buildJsonObject {
             put("schemaVersion", "1.0.0")
             put(
@@ -101,14 +108,16 @@ class GbosSchemaValidationTest {
                     put("build.tool.name", "gradle")
                 }
             )
-            put("observations", JsonArray(observations))
+            put("observations", JsonArray(standaloneObservations))
         }
         schema.validateReport(reportDocument)
 
-        val producer = observations.first()["producer"]!!.jsonObject
         val batchDocument = buildJsonObject {
             put("schemaVersion", "1.0.0")
-            put("producer", producer)
+            put("producer", buildJsonObject {
+                put("name", "info-test-process")
+                put("version", "2.1.0")
+            })
             put(
                 "observations",
                 buildJsonArray {
@@ -139,7 +148,7 @@ class GbosSchemaValidationTest {
             assert(lines.size == 2)
             lines.forEachIndexed { index, line ->
                 assert("\n" !in line)
-                schema.validateObservation(
+                schema.validateObservationFragment(
                     ReportJson.json.parseToJsonElement(line).jsonObject,
                     "ndjson[$index]"
                 )
