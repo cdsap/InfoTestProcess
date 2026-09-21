@@ -5,8 +5,8 @@ import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.report.ReportDocument
-import io.github.cdsap.testprocess.report.StatsReportOutputOptions
-import io.github.cdsap.testprocess.report.StatsReportWriter
+import io.github.cdsap.testprocess.report.StatsOutputOptions
+import io.github.cdsap.testprocess.report.StatsOutputWriter
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -51,10 +51,10 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
             stats
         )
         val report = ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats)
-        StatsReportWriter().write(
+        StatsOutputWriter().write(
             report,
             payload,
-            StatsReportOutputOptions(
+            StatsOutputOptions(
                 develocity = parameters.develocity.get(),
                 persistedTxt = parameters.persistedTxt.get().asFile,
                 persistedJson = parameters.persistedJson.get().asFile,
