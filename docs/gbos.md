@@ -36,7 +36,10 @@ With no GBOS properties set, builds behave exactly as before: only legacy `testP
 
 When enabled, the plugin emits:
 
-- Repeated custom values named `gbos.v1.observation` (compact observation JSON)
+- Shared headers emitted once: `gbos.schema=1.0.0`, `gbos.version=0.0.3`, and
+  `gbos.producer=info-test-process`.
+- Repeated custom values named `gbos.v1.observation` containing headerless compact
+  observation fragments. Consumers combine each fragment with the shared headers.
 - Allowlisted build-level indexes only:
 
 | Key | Measurement |

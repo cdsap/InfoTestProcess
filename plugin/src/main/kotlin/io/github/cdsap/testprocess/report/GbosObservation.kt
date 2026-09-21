@@ -50,6 +50,10 @@ internal data class GbosObservation(
 
 internal object GbosObservations {
     const val SCHEMA_VERSION = "1.0.0"
+    const val CONTRACT_VERSION = "0.0.3"
+    const val SCHEMA_CUSTOM_VALUE = "gbos.schema"
+    const val VERSION_CUSTOM_VALUE = "gbos.version"
+    const val PRODUCER_CUSTOM_VALUE = "gbos.producer"
     const val OBSERVATION_CUSTOM_VALUE = "gbos.v1.observation"
     const val OBSERVATIONS_CUSTOM_VALUE = "gbos.v1.observations"
     const val ATTR_PROCESS_PID = "process.pid"
@@ -58,7 +62,7 @@ internal object GbosObservations {
     const val ATTR_TEST_EXECUTOR = "gradle.test.executor"
     const val ATTR_GC_NAME = "jvm.gc.name"
 
-    private const val PRODUCER_NAME = "info-test-process"
+    const val PRODUCER_NAME = "info-test-process"
     private const val PRODUCER_VERSION = "2.1.0"
     private const val PROCESS_SCOPE = "jvm.process"
     private const val TEST_WORKER_ROLE = "test-worker"
@@ -113,6 +117,9 @@ internal object GbosObservations {
 
     fun encode(observation: GbosObservation): String =
         ReportJson.json.encodeToString(JsonObject.serializer(), toJsonObject(observation))
+
+    fun encodeFragment(observation: GbosObservation): String =
+        ReportJson.json.encodeToString(JsonObject.serializer(), toJsonObject(observation, includeHeader = false))
 
     fun encodeBatch(observations: List<GbosObservation>): String {
         require(observations.isNotEmpty()) { "cannot encode an empty observation batch" }

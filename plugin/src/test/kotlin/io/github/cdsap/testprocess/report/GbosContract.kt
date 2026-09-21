@@ -21,6 +21,7 @@ import kotlinx.serialization.json.jsonPrimitive
 internal class GbosContract private constructor(
     private val reportSchema: Schema,
     private val observationSchema: Schema,
+    private val observationFragmentSchema: Schema,
     private val batchSchema: Schema,
     private val develocitySchema: Schema,
     private val indexNames: Set<String>
@@ -34,6 +35,10 @@ internal class GbosContract private constructor(
 
     fun validateObservation(observation: JsonObject, where: String) {
         assertValid(observationSchema, observation, where)
+    }
+
+    fun validateObservationFragment(observation: JsonObject, where: String) {
+        assertValid(observationFragmentSchema, observation, where)
     }
 
     fun validateBatch(batch: JsonObject) {
@@ -54,10 +59,13 @@ internal class GbosContract private constructor(
             val name = customValue["name"]!!.jsonPrimitive.content
             val value = customValue["value"]!!.jsonPrimitive.content
             when {
+                name == "gbos.schema" -> assert(value == "1.0.0") { "unexpected GBOS schema version $value" }
+                name == "gbos.version" -> assert(value == "0.0.3") { "unexpected GBOS contract version $value" }
+                name == "gbos.producer" -> assert(value == "info-test-process") { "unexpected GBOS producer $value" }
                 name == "gbos.v1.observations" -> validateBatch(
                     ReportJson.json.parseToJsonElement(value).jsonObject
                 )
-                name == "gbos.v1.observation" -> validateObservation(
+                name == "gbos.v1.observation" -> validateObservationFragment(
                     ReportJson.json.parseToJsonElement(value).jsonObject,
                     "customValues[$index].value"
                 )
@@ -76,6 +84,7 @@ internal class GbosContract private constructor(
             "schema/report.schema.json",
             "schema/observation.schema.json",
             "schema/observation-batch.schema.json",
+            "schema/observation-fragment.schema.json",
             "schema/develocity-projection.schema.json",
             "schema/develocity-indexes.schema.json",
             "schema/semantic-conventions.schema.json"
@@ -101,6 +110,7 @@ internal class GbosContract private constructor(
             val reportSchema = schema(schemaRegistry, "schema/report.schema.json")
             val observationSchema = schema(schemaRegistry, "schema/observation.schema.json")
             val batchSchema = schema(schemaRegistry, "schema/observation-batch.schema.json")
+            val observationFragmentSchema = schema(schemaRegistry, "schema/observation-fragment.schema.json")
             val develocitySchema = schema(schemaRegistry, "schema/develocity-projection.schema.json")
             val conventionsSchema = schema(schemaRegistry, "schema/semantic-conventions.schema.json")
             val indexesSchema = schema(schemaRegistry, "schema/develocity-indexes.schema.json")
@@ -109,6 +119,7 @@ internal class GbosContract private constructor(
             reportSchema.initializeValidators()
             observationSchema.initializeValidators()
             batchSchema.initializeValidators()
+            observationFragmentSchema.initializeValidators()
             develocitySchema.initializeValidators()
             conventionsSchema.initializeValidators()
             indexesSchema.initializeValidators()
@@ -126,6 +137,7 @@ internal class GbosContract private constructor(
             return GbosContract(
                 reportSchema = reportSchema,
                 observationSchema = observationSchema,
+                observationFragmentSchema = observationFragmentSchema,
                 batchSchema = batchSchema,
                 develocitySchema = develocitySchema,
                 indexNames = indexNames
