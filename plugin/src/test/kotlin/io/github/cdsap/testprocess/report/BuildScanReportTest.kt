@@ -57,6 +57,15 @@ class BuildScanReportTest {
             .map { it.second.asJsonObject() }
 
         assert(observations.size == 2)
+        val batches = scanData.values.filter { it.first == "gbos.v1.observations" }
+        assert(batches.size == 1)
+        val batch = batches.single().second.asJsonObject()
+        assert(batch["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
+        assert(batch["producer"]!!.jsonObject["name"]!!.jsonPrimitive.content == "info-test-process")
+        assert(batch["observations"]!!.jsonArray.size == 2)
+        assert(batch["observations"]!!.jsonArray.all { observation ->
+            observation.jsonObject.keys.none { it == "schemaVersion" || it == "producer" }
+        })
         assert(scanData.values.filter { it.first.startsWith("gbos.v1.") }.all { (name, _) ->
             "13402" !in name &&
                 ":core:test" !in name &&

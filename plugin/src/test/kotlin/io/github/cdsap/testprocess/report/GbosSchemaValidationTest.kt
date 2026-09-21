@@ -6,6 +6,7 @@ import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -66,6 +67,19 @@ class GbosSchemaValidationTest {
 
         val gbosValues = scanData.values.filter { it.first.startsWith("gbos.v1.") }
         assert(gbosValues.isNotEmpty()) { "expected generated GBOS Develocity values" }
+        val schema = GbosContract.load()
+
+        val batches = gbosValues
+            .filter { it.first == "gbos.v1.observations" }
+            .map { ReportJson.json.parseToJsonElement(it.second).jsonObject }
+        assert(batches.size == 1)
+        val batch = batches.single()
+        schema.validateBatch(batch)
+        assert(batch["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
+        assert(batch["producer"]!!.jsonObject["name"]!!.jsonPrimitive.content == "info-test-process")
+        assert(batch["observations"]!!.jsonArray.all { observation ->
+            observation.jsonObject.keys.none { it == "schemaVersion" || it == "producer" }
+        })
 
         val observationJson = gbosValues
             .filter { it.first == "gbos.v1.observation" }
@@ -75,8 +89,6 @@ class GbosSchemaValidationTest {
         val observations = observationJson.map {
             ReportJson.json.parseToJsonElement(it).jsonObject
         }
-        val schema = GbosContract.load()
-
         observations.forEachIndexed { index, observation ->
             schema.validateObservation(observation, "observation[$index]")
         }
