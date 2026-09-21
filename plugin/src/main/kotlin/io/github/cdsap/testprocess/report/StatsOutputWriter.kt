@@ -4,7 +4,7 @@ import io.github.cdsap.testprocess.model.PersistedState
 import kotlinx.serialization.json.Json
 import java.io.File
 
-data class StatsReportOutputOptions(
+data class StatsOutputOptions(
     val develocity: Boolean,
     val persistedTxt: File,
     val persistedJson: File,
@@ -14,12 +14,12 @@ data class StatsReportOutputOptions(
     val writeGbosNdjson: Boolean
 )
 
-class StatsReportWriter {
+class StatsOutputWriter {
 
     fun write(
         report: ReportDocument,
         legacyState: PersistedState,
-        options: StatsReportOutputOptions
+        options: StatsOutputOptions
     ) {
         if (options.develocity) {
             val output = options.persistedTxt

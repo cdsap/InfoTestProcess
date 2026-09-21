@@ -1,12 +1,9 @@
-package io.github.cdsap.testprocess.service
+package io.github.cdsap.testprocess.report
 
 import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
-import io.github.cdsap.testprocess.report.ReportDocument
-import io.github.cdsap.testprocess.report.StatsReportOutputOptions
-import io.github.cdsap.testprocess.report.StatsReportWriter
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,7 +13,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 
-class StatsReportWriterTest {
+class StatsOutputWriterTest {
 
     @Rule
     @JvmField
@@ -31,7 +28,7 @@ class StatsReportWriterTest {
         val legacy = sampleLegacyState()
         val report = ReportDocument.from(legacy.processes, legacy.runtimeStats, legacy.stats)
 
-        StatsReportWriter().write(
+        StatsOutputWriter().write(
             report,
             legacy,
             options(
@@ -58,7 +55,7 @@ class StatsReportWriterTest {
         val legacy = sampleLegacyState()
         val report = ReportDocument.from(legacy.processes, legacy.runtimeStats, legacy.stats)
 
-        StatsReportWriter().write(
+        StatsOutputWriter().write(
             report,
             legacy,
             options(
@@ -85,7 +82,7 @@ class StatsReportWriterTest {
         val gbosJson = File(temp.root, "gbos.json")
         val gbosNdjson = File(temp.root, "gbos.ndjson")
 
-        StatsReportWriter().write(
+        StatsOutputWriter().write(
             report,
             legacy,
             options(
@@ -112,7 +109,7 @@ class StatsReportWriterTest {
         val legacy = PersistedState(emptyMap(), emptyMap(), Stats())
         val report = ReportDocument.from(emptyMap(), emptyMap(), Stats())
 
-        StatsReportWriter().write(
+        StatsOutputWriter().write(
             report,
             legacy,
             options(
@@ -138,7 +135,7 @@ class StatsReportWriterTest {
         gbosNdjson: File,
         writeGbosJson: Boolean = false,
         writeGbosNdjson: Boolean = false
-    ) = StatsReportOutputOptions(
+    ) = StatsOutputOptions(
         develocity = develocity,
         persistedTxt = persistedTxt,
         persistedJson = persistedJson,
