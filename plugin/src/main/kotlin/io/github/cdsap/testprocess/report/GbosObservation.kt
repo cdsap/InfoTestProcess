@@ -51,6 +51,7 @@ internal data class GbosObservation(
 internal object GbosObservations {
     const val SCHEMA_VERSION = "1.0.0"
     const val OBSERVATION_CUSTOM_VALUE = "gbos.v1.observation"
+    const val OBSERVATIONS_CUSTOM_VALUE = "gbos.v1.observations"
     const val ATTR_PROCESS_PID = "process.pid"
     const val ATTR_PROCESS_ROLE = "jvm.process.role"
     const val ATTR_TASK_PATH = "gradle.task.path"
@@ -113,15 +114,41 @@ internal object GbosObservations {
     fun encode(observation: GbosObservation): String =
         ReportJson.json.encodeToString(JsonObject.serializer(), toJsonObject(observation))
 
-    fun toJsonObject(observation: GbosObservation): JsonObject = buildJsonObject {
-        put("schemaVersion", observation.schemaVersion)
-        put(
-            "producer",
-            buildJsonObject {
-                put("name", observation.producer.name)
-                put("version", observation.producer.version)
-            }
-        )
+    fun encodeBatch(observations: List<GbosObservation>): String {
+        require(observations.isNotEmpty()) { "cannot encode an empty observation batch" }
+        val header = observations.first()
+        require(observations.all { it.schemaVersion == header.schemaVersion && it.producer == header.producer }) {
+            "observation batch entries must share schema version and producer"
+        }
+        return ReportJson.json.encodeToString(JsonObject.serializer(), buildJsonObject {
+            put("schemaVersion", header.schemaVersion)
+            put(
+                "producer",
+                buildJsonObject {
+                    put("name", header.producer.name)
+                    put("version", header.producer.version)
+                }
+            )
+            put("observations", buildJsonArray {
+                observations.forEach { add(toJsonObject(it, includeHeader = false)) }
+            })
+        })
+    }
+
+    fun toJsonObject(observation: GbosObservation): JsonObject =
+        toJsonObject(observation, includeHeader = true)
+
+    private fun toJsonObject(observation: GbosObservation, includeHeader: Boolean): JsonObject = buildJsonObject {
+        if (includeHeader) {
+            put("schemaVersion", observation.schemaVersion)
+            put(
+                "producer",
+                buildJsonObject {
+                    put("name", observation.producer.name)
+                    put("version", observation.producer.version)
+                }
+            )
+        }
         put("scope", observation.scope)
         put("aggregationScope", observation.aggregationScope)
         put("attributes", attributesJson(observation.attributes))

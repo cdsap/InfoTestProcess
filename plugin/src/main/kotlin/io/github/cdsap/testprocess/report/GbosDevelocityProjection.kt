@@ -3,6 +3,12 @@ package io.github.cdsap.testprocess.report
 internal object GbosDevelocityProjection {
     fun publish(report: ReportDocument, buildScanData: BuildScanData) {
         val observations = GbosObservations.from(report)
+        if (observations.isNotEmpty()) {
+            buildScanData.value(
+                GbosObservations.OBSERVATIONS_CUSTOM_VALUE,
+                GbosObservations.encodeBatch(observations)
+            )
+        }
         observations.forEach { observation ->
             buildScanData.value(
                 GbosObservations.OBSERVATION_CUSTOM_VALUE,

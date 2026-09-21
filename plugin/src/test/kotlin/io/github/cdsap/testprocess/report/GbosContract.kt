@@ -54,6 +54,9 @@ internal class GbosContract private constructor(
             val name = customValue["name"]!!.jsonPrimitive.content
             val value = customValue["value"]!!.jsonPrimitive.content
             when {
+                name == "gbos.v1.observations" -> validateBatch(
+                    ReportJson.json.parseToJsonElement(value).jsonObject
+                )
                 name == "gbos.v1.observation" -> validateObservation(
                     ReportJson.json.parseToJsonElement(value).jsonObject,
                     "customValues[$index].value"
