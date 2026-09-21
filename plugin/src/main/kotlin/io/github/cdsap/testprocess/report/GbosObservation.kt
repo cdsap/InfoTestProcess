@@ -50,11 +50,12 @@ internal data class GbosObservation(
 
 internal object GbosObservations {
     const val SCHEMA_VERSION = "1.0.0"
-    const val CONTRACT_VERSION = "0.0.3"
+    const val CONTRACT_VERSION = "0.0.4"
     const val SCHEMA_CUSTOM_VALUE = "gbos.schema"
-    const val VERSION_CUSTOM_VALUE = "gbos.version"
-    const val PRODUCER_CUSTOM_VALUE = "gbos.producer"
-    const val OBSERVATION_CUSTOM_VALUE = "gbos.v1.observation"
+    const val PRODUCER_NAMESPACE = "gbos.v1.producer.info_test_process"
+    const val PRODUCER_NAME_CUSTOM_VALUE = "$PRODUCER_NAMESPACE.name"
+    const val PRODUCER_VERSION_CUSTOM_VALUE = "$PRODUCER_NAMESPACE.version"
+    const val OBSERVATION_CUSTOM_VALUE = "$PRODUCER_NAMESPACE.observation"
     const val OBSERVATIONS_CUSTOM_VALUE = "gbos.v1.observations"
     const val ATTR_PROCESS_PID = "process.pid"
     const val ATTR_PROCESS_ROLE = "jvm.process.role"

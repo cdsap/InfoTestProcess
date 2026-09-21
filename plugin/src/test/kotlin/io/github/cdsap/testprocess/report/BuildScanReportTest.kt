@@ -39,7 +39,7 @@ class BuildScanReportTest {
         BuildScanReport().extracted(ReportDocument.from(processes, runtimeStats, Stats()), scanData)
 
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
-        assert(scanData.values.none { it.first == "gbos.v1.observation" })
+        assert(scanData.values.none { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
         assert(scanData.values.none { it.first.startsWith("gbos.v1.index.") })
     }
 
@@ -53,13 +53,13 @@ class BuildScanReportTest {
         )
 
         val observations = scanData.values
-            .filter { it.first == "gbos.v1.observation" }
+            .filter { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE }
             .map { it.second.asJsonObject() }
 
         assert(observations.size == 2)
         assert(scanData.values.single { it.first == "gbos.schema" }.second == "1.0.0")
-        assert(scanData.values.single { it.first == "gbos.version" }.second == "0.0.3")
-        assert(scanData.values.single { it.first == "gbos.producer" }.second == "info-test-process")
+        assert(scanData.values.single { it.first == GbosObservations.PRODUCER_VERSION_CUSTOM_VALUE }.second == "0.0.4")
+        assert(scanData.values.single { it.first == GbosObservations.PRODUCER_NAME_CUSTOM_VALUE }.second == "info-test-process")
         assert(scanData.values.filter { it.first.startsWith("gbos.v1.") }.all { (name, _) ->
             "13402" !in name &&
                 ":core:test" !in name &&
@@ -108,7 +108,7 @@ class BuildScanReportTest {
         )
 
         val build = scanData.values
-            .filter { it.first == "gbos.v1.observation" }
+            .filter { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE }
             .map { it.second.asJsonObject() }
             .single { it["aggregationScope"]!!.jsonPrimitive.content == "build" }
 
@@ -135,7 +135,7 @@ class BuildScanReportTest {
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
         assert(scanData.values.any { it.first == "testProcess.worker.13402" })
         assert(scanData.tags == listOf("tests:cpu-heavy"))
-        assert(scanData.values.any { it.first == "gbos.v1.observation" })
+        assert(scanData.values.any { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
     }
 
     @Test
@@ -148,7 +148,7 @@ class BuildScanReportTest {
         )
 
         val observations = scanData.values
-            .filter { it.first == "gbos.v1.observation" }
+            .filter { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE }
             .map { it.second.asJsonObject() }
         val entity = observations.single { it["aggregationScope"]!!.jsonPrimitive.content == "entity" }
         val measurementNames = entity["measurements"]!!.jsonArray.map { it.jsonObject["name"]!!.jsonPrimitive.content }

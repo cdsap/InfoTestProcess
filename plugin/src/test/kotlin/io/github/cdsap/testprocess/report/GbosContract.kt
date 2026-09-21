@@ -60,12 +60,16 @@ internal class GbosContract private constructor(
             val value = customValue["value"]!!.jsonPrimitive.content
             when {
                 name == "gbos.schema" -> assert(value == "1.0.0") { "unexpected GBOS schema version $value" }
-                name == "gbos.version" -> assert(value == "0.0.3") { "unexpected GBOS contract version $value" }
-                name == "gbos.producer" -> assert(value == "info-test-process") { "unexpected GBOS producer $value" }
+                name == "gbos.v1.producer.info_test_process.version" -> assert(value == "0.0.4") {
+                    "unexpected GBOS contract version $value"
+                }
+                name == "gbos.v1.producer.info_test_process.name" -> assert(value == "info-test-process") {
+                    "unexpected GBOS producer $value"
+                }
                 name == "gbos.v1.observations" -> validateBatch(
                     ReportJson.json.parseToJsonElement(value).jsonObject
                 )
-                name == "gbos.v1.observation" -> validateObservationFragment(
+                name == "gbos.v1.producer.info_test_process.observation" -> validateObservationFragment(
                     ReportJson.json.parseToJsonElement(value).jsonObject,
                     "customValues[$index].value"
                 )

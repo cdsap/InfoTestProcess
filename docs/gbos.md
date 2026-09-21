@@ -10,7 +10,7 @@ Set Gradle properties (for example in `gradle.properties` or via `-P`):
 
 | Property | Default | Effect |
 |---|---|---|
-| `infoTestProcess.gbos.develocity.enabled` | `false` | When `true` and Develocity is applied, also publish `gbos.v1.observation` custom values and allowlisted `gbos.v1.index.*` scalars |
+| `infoTestProcess.gbos.develocity.enabled` | `false` | When `true` and Develocity is applied, also publish producer-scoped GBOS observation custom values and allowlisted `gbos.v1.index.*` scalars |
 
 Example:
 
@@ -36,10 +36,12 @@ With no GBOS properties set, builds behave exactly as before: only legacy `testP
 
 When enabled, the plugin emits:
 
-- Shared headers emitted once: `gbos.schema=1.0.0`, `gbos.version=0.0.3`, and
-  `gbos.producer=info-test-process`.
-- Repeated custom values named `gbos.v1.observation` containing headerless compact
-  observation fragments. Consumers combine each fragment with the shared headers.
+- The global `gbos.schema=1.0.0` header, plus producer-scoped metadata:
+  `gbos.v1.producer.info_test_process.name=info-test-process` and
+  `gbos.v1.producer.info_test_process.version=0.0.4`.
+- Repeated `gbos.v1.producer.info_test_process.observation` values containing
+  headerless compact observation fragments. This namespace allows other plugins
+  to publish their own GBOS observations in the same build.
 - Allowlisted build-level indexes only:
 
 | Key | Measurement |
