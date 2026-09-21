@@ -1,13 +1,11 @@
 package io.github.cdsap.testprocess.report
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.networknt.schema.JsonSchemaFactory
-import com.networknt.schema.SpecVersion
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,15 +32,13 @@ class PublishedGbosSchemaValidationTest {
         )
     )
 
-    private val mapper = ObjectMapper()
-    private val schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012)
-
     @Test
     fun generatedReportAndProjectionValidateAgainstPublishedArtifact() {
         val report = ReportDocument.from(processes, runtimeStats, Stats())!!
         val reportJson = GbosReport.encodeReport(GbosReport.from(report)!!)
+        val contract = GbosContract.load()
 
-        assertValid("schema/report.schema.json", reportJson)
+        contract.validateReport(ReportJson.json.parseToJsonElement(reportJson).jsonObject)
 
         val scanData = RecordingBuildScanData()
         BuildScanReport(publishGbos = true).extracted(report, scanData)
@@ -63,7 +59,7 @@ class PublishedGbosSchemaValidationTest {
             )
             put("tags", buildJsonArray { })
         }
-        assertValid("schema/develocity-projection.schema.json", projection.toString())
+        contract.validateDevelocityProjection(projection)
     }
 
     @Test
@@ -72,17 +68,13 @@ class PublishedGbosSchemaValidationTest {
             {"schemaVersion":"1.0.0","resource":{"build.tool.name":"gradle"},"observations":[]}
         """.trimIndent()
 
-        val errors = schema("schema/report.schema.json").validate(mapper.readTree(invalidReport))
-        assertTrue("expected the invalid report to be rejected", errors.isNotEmpty())
+        val failure = runCatching {
+            GbosContract.load().validateReport(
+                ReportJson.json.parseToJsonElement(invalidReport).jsonObject
+            )
+        }.exceptionOrNull()
+        assertTrue("expected the invalid report to be rejected", failure is AssertionError)
     }
-
-    private fun assertValid(schemaPath: String, json: String) {
-        val errors = schema(schemaPath).validate(mapper.readTree(json))
-        assertTrue("$schemaPath rejected generated GBOS: $errors", errors.isEmpty())
-    }
-
-    private fun schema(path: String) =
-        schemaFactory.getSchema(requireNotNull(javaClass.getResource("/$path")).toURI())
 
     private class RecordingBuildScanData : BuildScanData {
         val values = mutableListOf<Pair<String, String>>()

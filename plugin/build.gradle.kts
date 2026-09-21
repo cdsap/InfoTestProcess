@@ -39,8 +39,9 @@ dependencies {
     develocityPluginClasspath(libs.develocity.gradlePlugin)
     implementation(libs.kotlinx.serializationJson)
     testImplementation(libs.junit)
-    testImplementation("io.github.cdsap:build-observability-schema:0.0.2")
-    testImplementation("com.networknt:json-schema-validator:1.5.9")
+    // GBOS contract validation is test/CI only — keep schemas off the plugin runtime classpath.
+    testImplementation(libs.build.observability.schema)
+    testImplementation(libs.json.schema.validator)
 }
 
 tasks.test {

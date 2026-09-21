@@ -3,10 +3,7 @@ package io.github.cdsap.testprocess.report
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
-import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
@@ -143,7 +140,7 @@ class GbosReportTest {
     }
 
     @Test
-    fun generatedExamplesMatchBundledPublicSchemaContract() {
+    fun generatedExamplesMatchPublishedPublicSchemaContract() {
         val document = GbosReport.from(report)!!
         val jsonDocument = ReportJson.json.parseToJsonElement(GbosReport.encodeReport(document)).jsonObject
         val schema = GbosContract.load()
@@ -180,153 +177,5 @@ class GbosReportTest {
                 it["name"]!!.jsonPrimitive.content == name &&
                     it["aggregation"]!!.jsonPrimitive.content == aggregation
             }["value"]!!.jsonPrimitive.doubleOrNull!!
-    }
-
-    private class GbosContract(
-        private val reportRequired: Set<String>,
-        private val observationRequired: Set<String>,
-        private val reportProperties: Set<String>,
-        private val observationProperties: Set<String>,
-        private val metrics: Map<String, Metric>,
-        private val attributes: Map<String, Attribute>,
-        private val scopes: Set<String>,
-        private val indexes: Map<String, Index>
-    ) {
-        fun validateReport(report: JsonObject) {
-            assert(report.keys.containsAll(reportRequired))
-            assert(report.keys.all { it in reportProperties })
-            assert(report["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
-            validateAttributes(report["resource"]!!.jsonObject, "resource")
-            assert(report["observations"] is JsonArray)
-            assert(report["observations"]!!.jsonArray.isNotEmpty())
-        }
-
-        fun validateObservation(observation: JsonObject, where: String) {
-            assert(observation.keys.containsAll(observationRequired)) { "$where missing required fields" }
-            assert(observation.keys.all { it in observationProperties }) { "$where has unknown fields ${observation.keys}" }
-            assert(observation["schemaVersion"]!!.jsonPrimitive.content == "1.0.0")
-            assert(observation["producer"]!!.jsonObject["name"]!!.jsonPrimitive.content == "info-test-process")
-            assert(observation["scope"]!!.jsonPrimitive.content in scopes)
-            assert(observation["aggregationScope"]!!.jsonPrimitive.content in setOf("entity", "task", "project", "build"))
-            validateAttributes(observation["attributes"]!!.jsonObject, "$where.attributes")
-
-            val measurements = observation["measurements"]!!.jsonArray
-            assert(measurements.isNotEmpty())
-            val seen = mutableSetOf<Pair<String, String>>()
-            measurements.forEachIndexed { index, item ->
-                val measurement = item.jsonObject
-                val name = measurement["name"]!!.jsonPrimitive.content
-                val metric = metrics.getValue(name)
-                val aggregation = measurement["aggregation"]!!.jsonPrimitive.content
-                assert(measurement.keys == setOf("name", "value", "unit", "aggregation"))
-                assert(measurement["unit"]!!.jsonPrimitive.content == metric.unit) { "$where.measurements[$index] unit" }
-                assert(aggregation in metric.allowedAggregations) { "$where.measurements[$index] aggregation" }
-                assert(measurement["value"]!!.jsonPrimitive.doubleOrNull != null)
-                assert(seen.add(name to aggregation)) { "$where duplicate measurement $name/$aggregation" }
-            }
-        }
-
-        fun validateIndex(name: String, value: String) {
-            val index = indexes.getValue(name)
-            val number = value.toDoubleOrNull()
-            assert(number != null && number.isFinite()) { "index $name must be finite numeric string" }
-            assert(index.producer == "info-test-process")
-            assert(index.scope in scopes)
-            assert(index.metric in metrics)
-            assert(index.aggregation in metrics.getValue(index.metric).allowedAggregations)
-            assert(index.aggregationScope == "build")
-        }
-
-        private fun validateAttributes(actual: JsonObject, where: String) {
-            actual.forEach { (name, value) ->
-                val attribute = attributes.getValue(name)
-                when (attribute.type) {
-                    "string" -> assert(value.jsonPrimitive.contentOrNull != null) { "$where.$name must be string" }
-                    "integer" -> assert(value.jsonPrimitive.intOrNull != null) { "$where.$name must be integer" }
-                    "number" -> assert(value.jsonPrimitive.doubleOrNull != null) { "$where.$name must be number" }
-                    "boolean" -> assert(value is JsonPrimitive && value.isString.not()) { "$where.$name must be boolean" }
-                }
-                if (attribute.values.isNotEmpty()) {
-                    assert(value.jsonPrimitive.content in attribute.values) { "$where.$name has invalid value" }
-                }
-            }
-        }
-
-        companion object {
-            fun load(): GbosContract {
-                val reportSchema = resourceJson("schema/report.schema.json")
-                val observationSchema = resourceJson("schema/observation.schema.json")
-                val conventions = resourceJson("registry/semantic-conventions.json")
-                val develocityIndexes = resourceJson("registry/develocity-indexes.json")
-                return GbosContract(
-                    reportRequired = required(reportSchema),
-                    observationRequired = required(observationSchema),
-                    reportProperties = properties(reportSchema),
-                    observationProperties = properties(observationSchema),
-                    metrics = conventions["metrics"]!!.jsonArray.associate {
-                        val metric = it.jsonObject
-                        metric["name"]!!.jsonPrimitive.content to Metric(
-                            unit = metric["unit"]!!.jsonPrimitive.content,
-                            allowedAggregations = metric["allowedAggregations"]!!.jsonArray
-                                .map { aggregation -> aggregation.jsonPrimitive.content }
-                                .toSet()
-                        )
-                    },
-                    attributes = conventions["attributes"]!!.jsonArray.associate {
-                        val attribute = it.jsonObject
-                        attribute["name"]!!.jsonPrimitive.content to Attribute(
-                            type = attribute["type"]!!.jsonPrimitive.content,
-                            values = attribute["values"]?.jsonArray
-                                ?.map { value -> value.jsonPrimitive.content }
-                                ?.toSet()
-                                ?: emptySet()
-                        )
-                    },
-                    scopes = conventions["scopes"]!!.jsonArray
-                        .map { it.jsonObject["name"]!!.jsonPrimitive.content }
-                        .toSet(),
-                    indexes = develocityIndexes["indexes"]!!.jsonArray.associate {
-                        val index = it.jsonObject
-                        index["name"]!!.jsonPrimitive.content to Index(
-                            producer = index["producer"]!!.jsonPrimitive.content,
-                            scope = index["scope"]!!.jsonPrimitive.content,
-                            metric = index["metric"]!!.jsonPrimitive.content,
-                            aggregation = index["aggregation"]!!.jsonPrimitive.content,
-                            aggregationScope = index["aggregationScope"]!!.jsonPrimitive.content
-                        )
-                    }
-                )
-            }
-
-            private fun resourceJson(path: String): JsonObject {
-                val stream = javaClass.classLoader.getResourceAsStream(path)
-                    ?: error("Missing test resource $path")
-                return ReportJson.json.parseToJsonElement(stream.bufferedReader().readText()).jsonObject
-            }
-
-            private fun required(schema: JsonObject): Set<String> =
-                schema["required"]!!.jsonArray.map { it.jsonPrimitive.content }.toSet()
-
-            private fun properties(schema: JsonObject): Set<String> =
-                schema["properties"]!!.jsonObject.keys
-        }
-
-        private data class Metric(
-            val unit: String,
-            val allowedAggregations: Set<String>
-        )
-
-        private data class Attribute(
-            val type: String,
-            val values: Set<String>
-        )
-
-        private data class Index(
-            val producer: String,
-            val scope: String,
-            val metric: String,
-            val aggregation: String,
-            val aggregationScope: String
-        )
     }
 }
