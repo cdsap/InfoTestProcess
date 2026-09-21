@@ -5,8 +5,14 @@ internal object GbosDevelocityProjection {
         val observations = GbosObservations.from(report)
         if (observations.isNotEmpty()) {
             buildScanData.value(GbosObservations.SCHEMA_CUSTOM_VALUE, GbosObservations.SCHEMA_VERSION)
-            buildScanData.value(GbosObservations.VERSION_CUSTOM_VALUE, GbosObservations.CONTRACT_VERSION)
-            buildScanData.value(GbosObservations.PRODUCER_CUSTOM_VALUE, GbosObservations.PRODUCER_NAME)
+            buildScanData.value(
+                GbosObservations.PRODUCER_VERSION_CUSTOM_VALUE,
+                GbosObservations.CONTRACT_VERSION
+            )
+            buildScanData.value(
+                GbosObservations.PRODUCER_NAME_CUSTOM_VALUE,
+                GbosObservations.PRODUCER_NAME
+            )
         }
         observations.forEach { observation ->
             buildScanData.value(

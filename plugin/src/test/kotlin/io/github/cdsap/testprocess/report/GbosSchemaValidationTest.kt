@@ -72,13 +72,13 @@ class GbosSchemaValidationTest {
 
         assert(gbosValues.count { it.first == "gbos.schema" } == 1)
         assert(gbosValues.single { it.first == "gbos.schema" }.second == "1.0.0")
-        assert(gbosValues.count { it.first == "gbos.version" } == 1)
-        assert(gbosValues.single { it.first == "gbos.version" }.second == "0.0.3")
-        assert(gbosValues.count { it.first == "gbos.producer" } == 1)
-        assert(gbosValues.single { it.first == "gbos.producer" }.second == "info-test-process")
+        assert(gbosValues.count { it.first == GbosObservations.PRODUCER_VERSION_CUSTOM_VALUE } == 1)
+        assert(gbosValues.single { it.first == GbosObservations.PRODUCER_VERSION_CUSTOM_VALUE }.second == "0.0.4")
+        assert(gbosValues.count { it.first == GbosObservations.PRODUCER_NAME_CUSTOM_VALUE } == 1)
+        assert(gbosValues.single { it.first == GbosObservations.PRODUCER_NAME_CUSTOM_VALUE }.second == "info-test-process")
 
         val observationJson = gbosValues
-            .filter { it.first == "gbos.v1.observation" }
+            .filter { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE }
             .map { it.second }
         assert(observationJson.size == 2)
 
