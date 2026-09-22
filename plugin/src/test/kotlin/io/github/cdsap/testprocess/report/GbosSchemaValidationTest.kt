@@ -180,9 +180,7 @@ class GbosSchemaValidationTest {
         }
         schema.validateDevelocityProjection(projection)
 
-        // Legacy keys remain available alongside the opt-in projection.
-        assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
-        assert(scanData.values.any { it.first == "testProcess.worker.13402" })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") })
         assert(scanData.values.none { it.first.startsWith("gbos.v1.") && "13402" in it.first })
     }
 

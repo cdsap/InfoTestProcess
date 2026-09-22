@@ -67,6 +67,9 @@ class BuildScanReportTest {
         })
         assert(observations.all { it.keys.none { key -> key == "schemaVersion" || key == "producer" } })
         assert(observations.all { it["scope"]!!.jsonPrimitive.content == "jvm.process" })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") }) {
+            "opted-in GBOS output must not include legacy testProcess custom values"
+        }
 
         val entity = observations.single { it["aggregationScope"]!!.jsonPrimitive.content == "entity" }
         val entityAttributes = entity["attributes"]!!.jsonObject
@@ -118,7 +121,7 @@ class BuildScanReportTest {
     }
 
     @Test
-    fun keepsLegacyDevelocityCustomValuesAndTagsWhenGbosIsEnabled() {
+    fun keepsScanTagsButOmitsLegacyCustomValuesWhenGbosIsEnabled() {
         val heavyStats = mapOf(
             13402L to runtimeStats.getValue(13402L).copy(
                 cpuTimeMs = 500_000,
@@ -132,8 +135,7 @@ class BuildScanReportTest {
             scanData
         )
 
-        assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
-        assert(scanData.values.any { it.first == "testProcess.worker.13402" })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") })
         assert(scanData.tags == listOf("tests:cpu-heavy"))
         assert(scanData.values.any { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
     }
