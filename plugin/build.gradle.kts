@@ -37,6 +37,7 @@ val develocityPluginClasspath by configurations.creating {
 dependencies {
     compileOnly(libs.develocity.gradlePlugin)
     develocityPluginClasspath(libs.develocity.gradlePlugin)
+    implementation(libs.build.observability.core)
     implementation(libs.kotlinx.serializationJson)
     testImplementation(libs.junit)
     // GBOS contract validation is test/CI only — keep schemas off the plugin runtime classpath.

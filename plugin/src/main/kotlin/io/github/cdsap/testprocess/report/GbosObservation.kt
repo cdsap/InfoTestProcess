@@ -1,52 +1,18 @@
 package io.github.cdsap.testprocess.report
 
-import kotlinx.serialization.json.JsonArray
+import io.github.cdsap.gbos.core.GbosAttributeValue
+import io.github.cdsap.gbos.core.GbosDiagnostic
+import io.github.cdsap.gbos.core.GbosJson
+import io.github.cdsap.gbos.core.GbosMeasurement
+import io.github.cdsap.gbos.core.GbosObservation
+import io.github.cdsap.gbos.core.GbosProducer
+import io.github.cdsap.gbos.core.jsonNumber
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.JsonUnquotedLiteral
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
-import java.math.BigDecimal
 
-internal data class GbosProducer(
-    val name: String,
-    val version: String
-)
-
-internal data class GbosMeasurement(
-    val name: String,
-    val value: Double,
-    val unit: String,
-    val aggregation: String
-)
-
-internal data class GbosDiagnostic(
-    val code: String,
-    val severity: String,
-    val message: String? = null
-)
-
-internal sealed interface GbosAttributeValue {
-    data class Text(val value: String) : GbosAttributeValue
-    data class Integer(val value: Long) : GbosAttributeValue
-}
-
-/**
- * Internal GBOS observation model. Output adapters (Develocity, file) serialize
- * this; conversion from [ReportDocument] lives in [GbosObservations].
- */
-internal data class GbosObservation(
-    val schemaVersion: String,
-    val producer: GbosProducer,
-    val scope: String,
-    val aggregationScope: String,
-    val attributes: Map<String, GbosAttributeValue>,
-    val measurements: List<GbosMeasurement>,
-    val partial: Boolean = false,
-    val droppedObservations: Int? = null,
-    val diagnostics: List<GbosDiagnostic> = emptyList()
-)
 
 internal object GbosObservations {
     const val SCHEMA_VERSION = "1.0.0"
@@ -117,10 +83,13 @@ internal object GbosObservations {
     }
 
     fun encode(observation: GbosObservation): String =
-        ReportJson.json.encodeToString(JsonObject.serializer(), toJsonObject(observation))
+        ReportJson.json.encodeToString(
+            JsonObject.serializer(),
+            ReportJson.json.parseToJsonElement(GbosJson.encode(observation)).jsonObject,
+        )
 
     fun encodeFragment(observation: GbosObservation): String =
-        ReportJson.json.encodeToString(JsonObject.serializer(), toJsonObject(observation, includeHeader = false))
+        GbosJson.encodeFragment(observation)
 
     fun encodeBatch(observations: List<GbosObservation>): String {
         require(observations.isNotEmpty()) { "cannot encode an empty observation batch" }
@@ -138,7 +107,9 @@ internal object GbosObservations {
                 }
             )
             put("observations", buildJsonArray {
-                observations.forEach { add(toJsonObject(it, includeHeader = false)) }
+                observations.forEach {
+                    add(ReportJson.json.parseToJsonElement(GbosJson.encodeFragment(it)).jsonObject)
+                }
             })
         })
     }
@@ -155,33 +126,7 @@ internal object GbosObservations {
     }
 
     fun toJsonObject(observation: GbosObservation): JsonObject =
-        toJsonObject(observation, includeHeader = true)
-
-    private fun toJsonObject(observation: GbosObservation, includeHeader: Boolean): JsonObject = buildJsonObject {
-        if (includeHeader) {
-            put("schemaVersion", observation.schemaVersion)
-            put(
-                "producer",
-                buildJsonObject {
-                    put("name", observation.producer.name)
-                    put("version", observation.producer.version)
-                }
-            )
-        }
-        put("scope", observation.scope)
-        put("aggregationScope", observation.aggregationScope)
-        put("attributes", attributesJson(observation.attributes))
-        if (observation.measurements.isNotEmpty()) {
-            put("measurements", measurementsJson(observation.measurements))
-        }
-        if (observation.partial) {
-            put("partial", true)
-        }
-        observation.droppedObservations?.let { put("droppedObservations", it) }
-        if (observation.diagnostics.isNotEmpty()) {
-            put("diagnostics", diagnosticsJson(observation.diagnostics))
-        }
-    }
+        ReportJson.json.parseToJsonElement(GbosJson.encode(observation)).jsonObject
 
     private fun workerObservation(worker: WorkerProcessInfo): GbosObservation? {
         val measurements = buildList {
@@ -284,40 +229,6 @@ internal object GbosObservations {
         return GbosMeasurement(name = name, value = value, unit = unit, aggregation = aggregation)
     }
 
-    private fun attributesJson(attributes: Map<String, GbosAttributeValue>): JsonObject = buildJsonObject {
-        attributes.forEach { (name, value) ->
-            when (value) {
-                is GbosAttributeValue.Text -> put(name, value.value)
-                is GbosAttributeValue.Integer -> put(name, value.value)
-            }
-        }
-    }
-
-    private fun measurementsJson(measurements: List<GbosMeasurement>): JsonArray = buildJsonArray {
-        measurements.forEach { measurement ->
-            add(
-                buildJsonObject {
-                    put("name", measurement.name)
-                    put("value", jsonNumber(measurement.value))
-                    put("unit", measurement.unit)
-                    put("aggregation", measurement.aggregation)
-                }
-            )
-        }
-    }
-
-    private fun diagnosticsJson(diagnostics: List<GbosDiagnostic>): JsonArray = buildJsonArray {
-        diagnostics.forEach { diagnostic ->
-            add(
-                buildJsonObject {
-                    put("code", diagnostic.code)
-                    put("severity", diagnostic.severity)
-                    diagnostic.message?.let { put("message", it) }
-                }
-            )
-        }
-    }
-
     private fun xmxBytes(xmx: String): Double? = Aggregator.parseXmxGb(xmx)?.let(::gibToBytes)
 
     private fun gibToBytes(value: Double): Double = Math.round(value * 1024.0 * 1024.0 * 1024.0).toDouble()
@@ -325,9 +236,6 @@ internal object GbosObservations {
     private fun mibToBytes(value: Double): Double = Math.round(value * 1024.0 * 1024.0).toDouble()
 
     private fun formatNumber(value: Double): String = jsonNumber(value).content
-
-    private fun jsonNumber(value: Double): JsonPrimitive =
-        JsonUnquotedLiteral(BigDecimal.valueOf(value).stripTrailingZeros().toPlainString())
 
     private data class GbosIndex(
         val name: String,
