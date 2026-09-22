@@ -143,6 +143,17 @@ internal object GbosObservations {
         })
     }
 
+    fun encodeReport(observations: List<GbosObservation>): String {
+        require(observations.isNotEmpty()) { "cannot encode an empty report" }
+        return ReportJson.prettyJson.encodeToString(JsonObject.serializer(), buildJsonObject {
+            put("schemaVersion", SCHEMA_VERSION)
+            put("resource", buildJsonObject { put("build.tool.name", "gradle") })
+            put("observations", buildJsonArray {
+                observations.forEach { add(toJsonObject(it)) }
+            })
+        })
+    }
+
     fun toJsonObject(observation: GbosObservation): JsonObject =
         toJsonObject(observation, includeHeader = true)
 

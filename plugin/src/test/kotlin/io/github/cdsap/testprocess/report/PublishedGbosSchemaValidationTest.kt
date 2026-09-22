@@ -35,7 +35,7 @@ class PublishedGbosSchemaValidationTest {
     @Test
     fun generatedReportAndProjectionValidateAgainstPublishedArtifact() {
         val report = ReportDocument.from(processes, runtimeStats, Stats())!!
-        val reportJson = GbosReport.encodeReport(GbosReport.from(report)!!)
+        val reportJson = GbosObservations.encodeReport(GbosObservations.from(report))
         val contract = GbosContract.load()
 
         contract.validateReport(ReportJson.json.parseToJsonElement(reportJson).jsonObject)
