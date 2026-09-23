@@ -1,13 +1,9 @@
 package io.github.cdsap.testprocess.service
 
 import io.github.cdsap.testprocess.agent.AgentJarExtractor
-import io.github.cdsap.testprocess.agent.WorkerRegistry
-import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
-import io.github.cdsap.testprocess.report.ReportDocument
 import io.github.cdsap.testprocess.report.StatsOutputOptions
-import io.github.cdsap.testprocess.report.StatsOutputWriter
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -44,18 +40,11 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
     }
 
     override fun close() {
-        val registry = parameters.registryDir.get().asFile
-        val payload = WorkerStateCollector.collect(
-            WorkerRegistry.read(registry),
-            WorkerRegistry.readStats(registry),
-            processes,
-            stats
-        )
-        val report = ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats)
-        StatsOutputWriter().write(
-            report,
-            payload,
-            StatsOutputOptions(
+        StatsReportPublisher().publish(
+            registryDir = parameters.registryDir.get().asFile,
+            processes = processes,
+            stats = stats,
+            options = StatsOutputOptions(
                 develocity = parameters.develocity.get(),
                 persistedTxt = parameters.persistedTxt.get().asFile,
                 persistedJson = parameters.persistedJson.get().asFile,
