@@ -1,5 +1,6 @@
 package io.github.cdsap.testprocess.service
 
+import io.github.cdsap.testprocess.agent.AgentJarExtractor
 import io.github.cdsap.testprocess.agent.WorkerRegistry
 import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.model.Stats
@@ -39,7 +40,7 @@ abstract class StatsBuildService : BuildService<StatsBuildService.Parameters>, A
         registry.mkdirs()
         val agent = parameters.agentJar.get().asFile
         agent.parentFile?.mkdirs()
-        WorkerRegistry.extractAgentJar(agent, javaClass.classLoader)
+        AgentJarExtractor.extractAgentJar(agent, javaClass.classLoader)
     }
 
     override fun close() {
