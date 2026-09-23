@@ -1,5 +1,6 @@
 package io.github.cdsap.testprocess.report
 
+import io.github.cdsap.gbos.core.GbosObservation
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject

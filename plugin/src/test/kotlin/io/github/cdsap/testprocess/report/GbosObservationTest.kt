@@ -1,5 +1,10 @@
 package io.github.cdsap.testprocess.report
 
+import io.github.cdsap.gbos.core.GbosAttributeValue
+import io.github.cdsap.gbos.core.GbosDiagnostic
+import io.github.cdsap.gbos.core.GbosMeasurement
+import io.github.cdsap.gbos.core.GbosObservation
+import io.github.cdsap.gbos.core.GbosProducer
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
