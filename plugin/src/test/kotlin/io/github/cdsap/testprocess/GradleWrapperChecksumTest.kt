@@ -11,9 +11,9 @@ class GradleWrapperChecksumTest {
     // Wrapper lives at the repo root; this test runs from the :plugin project dir.
     private val wrapperProperties = File("../gradle/wrapper/gradle-wrapper.properties")
 
-    // Published Binary-only (-bin) ZIP checksum for gradle-9.7.1
-    private val expectedGradle971BinSha256 =
-        "acd53f1edaf02f1a8ff99879f8a34b302661a057d9b063ae9e35b552f804d20a"
+    // Published Binary-only (-bin) ZIP checksum for gradle-9.8.0
+    private val expectedGradle980BinSha256 =
+        "bafd5ce9cfaea0fbccfdc8439a1ac42fbd4cd9c89dc9a988228d8a2639a58e6c"
 
     @Test
     fun distributionSha256SumMatchesPublishedChecksumForConfiguredDistribution() {
@@ -25,8 +25,8 @@ class GradleWrapperChecksumTest {
 
         val distributionUrl = props.getProperty("distributionUrl")
         assertTrue(
-            "distributionUrl must point at gradle-9.7.1-bin.zip",
-            distributionUrl != null && distributionUrl.contains("gradle-9.7.1-bin.zip")
+            "distributionUrl must point at gradle-9.8.0-bin.zip",
+            distributionUrl != null && distributionUrl.contains("gradle-9.8.0-bin.zip")
         )
 
         val distributionSha256Sum = props.getProperty("distributionSha256Sum")
@@ -39,8 +39,8 @@ class GradleWrapperChecksumTest {
             distributionSha256Sum.matches(Regex("[a-fA-F0-9]{64}"))
         )
         assertEquals(
-            "distributionSha256Sum must match the published gradle-9.7.1-bin.zip checksum",
-            expectedGradle971BinSha256,
+            "distributionSha256Sum must match the published gradle-9.8.0-bin.zip checksum",
+            expectedGradle980BinSha256,
             distributionSha256Sum
         )
     }
