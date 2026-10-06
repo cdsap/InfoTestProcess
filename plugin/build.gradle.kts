@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.build.observability.core)
     implementation(libs.kotlinx.serializationJson)
     testImplementation(libs.junit)
+    // Compiles the test-only fake Develocity plugin against the real DevelocityConfiguration API.
+    testImplementation(libs.develocity.gradlePlugin)
     // GBOS contract validation is test/CI only — keep schemas off the plugin runtime classpath.
     testImplementation(libs.build.observability.schema)
     testImplementation(libs.json.schema.validator)
