@@ -2,7 +2,6 @@ package io.github.cdsap.testprocess
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
-import io.github.cdsap.testprocess.model.PersistedState
 import io.github.cdsap.testprocess.report.BuildScanData
 import io.github.cdsap.testprocess.report.BuildScanReport
 import io.github.cdsap.testprocess.report.ReportDocument
@@ -18,15 +17,14 @@ class DevelocityBuildScanAdapter(
 
     fun register(
         develocityConfiguration: DevelocityConfiguration,
-        provider: Provider<PersistedState>
+        provider: Provider<ReportDocument>
     ) {
         develocityConfiguration.buildScan {
             val develocityValue = DevelocityValue(this)
             buildFinished {
                 if (provider.isPresent) {
-                    val state = provider.get()
                     BuildScanReport(publishGbos).extracted(
-                        ReportDocument.from(state.processes, state.runtimeStats, state.stats),
+                        provider.get(),
                         develocityValue
                     )
                 }

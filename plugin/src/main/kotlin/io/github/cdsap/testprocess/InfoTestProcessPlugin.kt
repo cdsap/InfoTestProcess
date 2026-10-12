@@ -1,6 +1,7 @@
 package io.github.cdsap.testprocess
 
 import com.gradle.develocity.agent.gradle.DevelocityConfiguration
+import io.github.cdsap.testprocess.report.ReportDocument
 import io.github.cdsap.testprocess.service.StatsBuildService
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -83,6 +84,9 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
                 parameters.file.set(persistedTxt)
             }
+            val reportProvider = persistedStateProvider.map { state ->
+                ReportDocument.from(state.processes, state.runtimeStats, state.stats)
+            }
             // Wire Build Scan reporting when Develocity is (or becomes) present.
             // Registered here so persistedStateProvider is available; withPlugin still
             // fires immediately if Develocity was applied before this plugin.
@@ -91,7 +95,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                     DevelocityBuildScanAdapter(infoTestProcess.gbos.develocity.get())
                         .register(
                             target.extensions.getByType(DevelocityConfiguration::class.java),
-                            persistedStateProvider
+                            reportProvider
                         )
                 }
             }
