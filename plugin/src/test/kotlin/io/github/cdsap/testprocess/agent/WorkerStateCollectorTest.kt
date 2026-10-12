@@ -44,7 +44,9 @@ class WorkerStateCollectorTest {
 
         val processes = mutableMapOf<Long, TestProcess>()
         val stats = Stats(totalProcesses = 2)
-        val state = WorkerStateCollector.collect(registryEntries, runtimeStatsEntries, processes, stats)
+        val state = WorkerStateCollector.collect(
+            WorkerRegistrySnapshot(registryEntries, runtimeStatsEntries), processes, stats
+        )
 
         assert(state.processes.size == 2)
         assert(state.processes[10L]?.task == ":app:test")
@@ -81,7 +83,9 @@ class WorkerStateCollectorTest {
         val processes = mutableMapOf(5L to existing)
         val stats = Stats()
 
-        val state = WorkerStateCollector.collect(registryEntries, emptyList(), processes, stats)
+        val state = WorkerStateCollector.collect(
+            WorkerRegistrySnapshot(registryEntries, emptyList()), processes, stats
+        )
 
         assert(state.processes[5L] === existing)
         assert(state.processes[5L]?.task == ":already:tracked")
@@ -114,7 +118,9 @@ class WorkerStateCollectorTest {
         )
 
         val processes = mutableMapOf<Long, TestProcess>()
-        val state = WorkerStateCollector.collect(registryEntries, emptyList(), processes, Stats())
+        val state = WorkerStateCollector.collect(
+            WorkerRegistrySnapshot(registryEntries, emptyList()), processes, Stats()
+        )
 
         assert(state.processes[7L]?.executor == "Gradle Test Executor pid-7")
         assert(state.processes[7L]?.max == "512m")

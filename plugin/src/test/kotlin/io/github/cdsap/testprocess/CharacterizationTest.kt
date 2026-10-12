@@ -1,6 +1,7 @@
 package io.github.cdsap.testprocess
 
 import io.github.cdsap.testprocess.agent.WorkerRegistryEntry
+import io.github.cdsap.testprocess.agent.WorkerRegistrySnapshot
 import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.fake.FakeDevelocityPlugin
 import io.github.cdsap.testprocess.model.Stats
@@ -305,7 +306,9 @@ class CharacterizationTest {
         result.output.lines().filterNot { line -> line.isBlank() || GRADLE_CHROME.any { it.matches(line) } }
 
     private fun fixtureReport(): ReportDocument {
-        val payload = WorkerStateCollector.collect(FIXTURE_ENTRIES, FIXTURE_STATS, emptyMap(), Stats())
+        val payload = WorkerStateCollector.collect(
+            WorkerRegistrySnapshot(FIXTURE_ENTRIES, FIXTURE_STATS), emptyMap(), Stats()
+        )
         return ReportDocument.from(payload.processes, payload.runtimeStats, payload.stats)
     }
 

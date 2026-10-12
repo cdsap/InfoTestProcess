@@ -25,8 +25,7 @@ class StatsReportPublisher(
         options: StatsOutputOptions
     ) {
         val payload = WorkerStateCollector.collect(
-            WorkerRegistry.read(registryDir),
-            WorkerRegistry.readStats(registryDir),
+            WorkerRegistry.readSnapshot(registryDir),
             processes,
             stats
         )
