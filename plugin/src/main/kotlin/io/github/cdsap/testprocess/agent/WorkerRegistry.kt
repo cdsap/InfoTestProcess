@@ -15,12 +15,22 @@ data class WorkerRegistryEntry(
     val args: List<String> = emptyList()
 )
 
+data class WorkerRegistrySnapshot(
+    val identityEntries: List<WorkerRegistryEntry>,
+    val runtimeStats: List<WorkerRuntimeStats>
+)
+
 object WorkerRegistry {
     private val json = Json { ignoreUnknownKeys = true }
     private const val STATS_SUFFIX = ".stats.json"
     private const val IDENTITY_SUFFIX = ".json"
 
-    fun read(dir: File): List<WorkerRegistryEntry> {
+    fun readSnapshot(dir: File): WorkerRegistrySnapshot = WorkerRegistrySnapshot(
+        identityEntries = readIdentityEntries(dir),
+        runtimeStats = readRuntimeStats(dir)
+    )
+
+    private fun readIdentityEntries(dir: File): List<WorkerRegistryEntry> {
         if (!dir.isDirectory) return emptyList()
         val files = dir.listFiles { f ->
             f.isFile && f.name.endsWith(IDENTITY_SUFFIX) && !f.name.endsWith(STATS_SUFFIX)
@@ -28,7 +38,7 @@ object WorkerRegistry {
         return files.mapNotNull { runCatching { json.decodeFromString<WorkerRegistryEntry>(it.readText()) }.getOrNull() }
     }
 
-    fun readStats(dir: File): List<WorkerRuntimeStats> {
+    private fun readRuntimeStats(dir: File): List<WorkerRuntimeStats> {
         if (!dir.isDirectory) return emptyList()
         val files = dir.listFiles { f -> f.isFile && f.name.endsWith(STATS_SUFFIX) } ?: return emptyList()
         return files.mapNotNull { runCatching { json.decodeFromString<WorkerRuntimeStats>(it.readText()) }.getOrNull() }

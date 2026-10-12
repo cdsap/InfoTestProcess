@@ -20,7 +20,7 @@ class WorkerRegistryTest {
         File(dir, "67890.json").writeText(
             """{"pid":67890,"task":":lib:test","executor":"Gradle Test Executor 2","maxHeapBytes":1073741824,"startMs":1700000000001,"args":["-Xmx1g"]}"""
         )
-        val entries = WorkerRegistry.read(dir).sortedBy { it.pid }
+        val entries = WorkerRegistry.readSnapshot(dir).identityEntries.sortedBy { it.pid }
         assert(entries.size == 2)
         assert(entries[0].pid == 12345L)
         assert(entries[0].task == ":app:test")
@@ -43,7 +43,7 @@ class WorkerRegistryTest {
         File(dir, "ok.json").writeText(
             """{"pid":42,"task":":x:test","executor":"Gradle Test Executor 9","maxHeapBytes":268435456,"startMs":1,"args":[]}"""
         )
-        val entries = WorkerRegistry.read(dir)
+        val entries = WorkerRegistry.readSnapshot(dir).identityEntries
         assert(entries.size == 1)
         assert(entries.single().pid == 42L)
     }
@@ -54,7 +54,7 @@ class WorkerRegistryTest {
         File(dir, "7.json").writeText(
             """{"pid":7,"task":":a:test","maxHeapBytes":268435456,"startMs":1,"args":[]}"""
         )
-        val entries = WorkerRegistry.read(dir)
+        val entries = WorkerRegistry.readSnapshot(dir).identityEntries
         assert(entries.single().pid == 7L)
         assert(entries.single().executor == "")
         assert(entries.single().maxHeapBytes == 268435456L)
@@ -63,12 +63,14 @@ class WorkerRegistryTest {
     @Test
     fun emptyDirReturnsEmptyList() {
         val dir = tmp.newFolder("workers")
-        assert(WorkerRegistry.read(dir).isEmpty())
+        assert(WorkerRegistry.readSnapshot(dir).identityEntries.isEmpty())
     }
 
     @Test
-    fun missingDirReturnsEmptyList() {
-        assert(WorkerRegistry.read(File(tmp.root, "nope")).isEmpty())
+    fun missingDirReturnsEmptySnapshot() {
+        val snapshot = WorkerRegistry.readSnapshot(File(tmp.root, "nope"))
+        assert(snapshot.identityEntries.isEmpty())
+        assert(snapshot.runtimeStats.isEmpty())
     }
 
     @Test
@@ -80,8 +82,9 @@ class WorkerRegistryTest {
         File(dir, "1.stats.json").writeText(
             """{"pid":1,"uptimeMs":12000,"cpuTimeMs":3400,"usedHeapBytes":104857600,"peakHeapBytes":209715200,"peakMetaspaceBytes":52428800,"maxHeapBytes":268435456,"gcCollections":4,"gcTimeMs":120,"gcType":"G1","jitTimeMs":850,"classesLoaded":4823,"peakThreads":18}"""
         )
-        assert(WorkerRegistry.read(dir).single().pid == 1L)
-        val s = WorkerRegistry.readStats(dir).single()
+        val snapshot = WorkerRegistry.readSnapshot(dir)
+        assert(snapshot.identityEntries.single().pid == 1L)
+        val s = snapshot.runtimeStats.single()
         assert(s.pid == 1L)
         assert(s.gcType == "G1")
         assert(s.cpuTimeMs == 3400L)
@@ -98,7 +101,7 @@ class WorkerRegistryTest {
         File(dir, "2.stats.json").writeText(
             """{"pid":2,"uptimeMs":5000,"usedHeapBytes":1024,"maxHeapBytes":2048,"gcCollections":1,"gcTimeMs":10,"gcType":"PARALLEL"}"""
         )
-        val s = WorkerRegistry.readStats(dir).single()
+        val s = WorkerRegistry.readSnapshot(dir).runtimeStats.single()
         assert(WorkerRuntimeStats::class.java.`package`.name == "io.github.cdsap.testprocess.model")
         assert(s.cpuTimeMs == -1L)
         assert(s.jitTimeMs == -1L)
@@ -118,7 +121,7 @@ class WorkerRegistryTest {
         File(dir, "3.stats.json").writeText(
             """{"pid":3,"uptimeMs":1000,"cpuTimeMs":100,"usedHeapBytes":1,"peakHeapBytes":2,"peakMetaspaceBytes":3,"maxHeapBytes":4,"gcCollections":0,"gcTimeMs":0,"gcType":"G1","jitTimeMs":1,"classesLoaded":2,"peakThreads":3}"""
         )
-        val stats = WorkerRegistry.readStats(dir)
+        val stats = WorkerRegistry.readSnapshot(dir).runtimeStats
         assert(stats.size == 1)
         assert(stats.single().pid == 3L)
     }
