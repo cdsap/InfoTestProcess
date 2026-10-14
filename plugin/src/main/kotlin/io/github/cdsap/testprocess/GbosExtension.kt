@@ -38,11 +38,9 @@ abstract class DevelocityReportingExtension {
  *
  * - [enabled] turns on both file sinks (JSON + NDJSON) unless overridden.
  * - [json] / [ndjson] refine file output independently of each other.
- * - [develocity] is independent of file output.
  */
 abstract class GbosExtension {
     abstract val enabled: Property<Boolean>
     abstract val json: Property<Boolean>
     abstract val ndjson: Property<Boolean>
-    abstract val develocity: Property<Boolean>
 }

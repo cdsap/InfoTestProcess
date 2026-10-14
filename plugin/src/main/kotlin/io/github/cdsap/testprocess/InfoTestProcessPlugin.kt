@@ -92,7 +92,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
             // fires immediately if Develocity was applied before this plugin.
             target.pluginManager.withPlugin(DEVELOCITY_PLUGIN_ID) {
                 if (infoTestProcess.develocity.enabled.get()) {
-                    DevelocityBuildScanAdapter(infoTestProcess.gbos.develocity.get())
+                    DevelocityBuildScanAdapter()
                         .register(
                             target.extensions.getByType(DevelocityConfiguration::class.java),
                             reportProvider

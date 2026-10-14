@@ -35,10 +35,11 @@ legacy output in two modes:
 | Develocity applied | Custom values + scan tags published to the Build Scan |
 | No Develocity | Structured JSON file at `${rootDir}/build/info-test-process/statsTestTasks.json` |
 
-GBOS output is experimental and disabled by default (`gbos.enabled=false`).
-Enabling it is opt-in and does not change legacy JSON, Build Scan custom values,
-or tags. File sinks and Develocity GBOS publishing can be enabled independently
-during same-major adoption. Prefer Gradle properties for CI-friendly opt-in.
+GBOS local file output is experimental and disabled by default
+(`infoTestProcess.gbos.enabled=false`). Enabling local sinks does not change
+legacy JSON, Build Scan custom values, or tags. When Develocity is available,
+its GBOS projection is published automatically alongside legacy values.
+Prefer Gradle properties for CI-friendly file-sink opt-in.
 
 ## Output
 
@@ -96,14 +97,10 @@ know data was dropped.
 #### Optional GBOS projection (experimental)
 
 GBOS ([Gradle Build Observability Schema](https://github.com/cdsap/build-observability-schema))
-is an **experimental, opt-in** spike. It is **disabled by default** — installs with
-no GBOS properties keep the same legacy output as before.
-
-Set `infoTestProcess.gbos.develocity.enabled=true` in `gradle.properties` (or
-`-PinfoTestProcess.gbos.develocity.enabled=true`) to also publish the GBOS
-Develocity projection. This flag is independent of file output and of
-`infoTestProcess.gbos.enabled`. Legacy `testProcess.*` custom values and scan
-tags remain unchanged and continue to be the supported default.
+is an **experimental, opt-in** file-output feature. Develocity is detected
+automatically: when it is available, canonical GBOS observations are published
+alongside the legacy `testProcess.*` custom values and tags. There is no
+separate GBOS Develocity switch.
 
 The projection emits canonical observations as repeated `gbos.v1.observation`
 custom values. Any PID, task path, or test executor identity is stored inside the
@@ -138,7 +135,6 @@ The same options are available on the Settings extension:
 infoTestProcess {
     gbos {
         enabled.set(true)
-        // develocity.set(true) // independent of file sinks
     }
 }
 ```
@@ -182,7 +178,10 @@ sink writes a GBOS report envelope to `${rootDir}/build/info-test-process/gbos.j
 
 The NDJSON sink writes compact observations, one per line, to
 `${rootDir}/build/info-test-process/gbos.ndjson`. Both file outputs are generated
-from the same internal GBOS observation model used by the Develocity projection.
+from the same internal GBOS observation model used by the automatic Develocity
+projection. They work identically when Develocity is not applied. The legacy
+`statsTestTasks.json` file is a separate compatibility report and is not
+replaced by GBOS JSON.
 
 Generated GBOS examples are validated in CI against the released
 `build-observability-schema` Maven Central contract (test-only; not a runtime

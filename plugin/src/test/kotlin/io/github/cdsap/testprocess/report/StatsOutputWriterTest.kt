@@ -127,6 +127,53 @@ class StatsOutputWriterTest {
         assertFalse(gbosNdjson.exists())
     }
 
+    @Test
+    fun eachFormatSinkCanBeEnabledIndependently() {
+        val legacy = sampleLegacyState()
+        val report = ReportDocument.from(legacy.processes, legacy.runtimeStats, legacy.stats)
+        val json = File(temp.root, "gbos.json")
+        val ndjson = File(temp.root, "gbos.ndjson")
+        val base = options(
+            develocity = false,
+            persistedTxt = File(temp.root, "statsTestTasks.txt"),
+            persistedJson = File(temp.root, "statsTestTasks.json"),
+            gbosJson = json,
+            gbosNdjson = ndjson
+        )
+
+        StatsOutputWriter().write(report, legacy, base.copy(writeGbosJson = true))
+        assertTrue(json.exists())
+        assertFalse(ndjson.exists())
+
+        StatsOutputWriter().write(report, legacy, base.copy(writeGbosNdjson = true))
+        assertFalse(json.exists())
+        assertTrue(ndjson.exists())
+    }
+
+    @Test
+    fun stableFilesAreReplacedWithoutAppendingOrTemporaryNames() {
+        val legacy = sampleLegacyState()
+        val report = ReportDocument.from(legacy.processes, legacy.runtimeStats, legacy.stats)
+        val json = File(temp.root, "gbos.json")
+        val ndjson = File(temp.root, "gbos.ndjson")
+        val options = options(
+            develocity = false,
+            persistedTxt = File(temp.root, "statsTestTasks.txt"),
+            persistedJson = File(temp.root, "statsTestTasks.json"),
+            gbosJson = json,
+            gbosNdjson = ndjson,
+            writeGbosJson = true,
+            writeGbosNdjson = true
+        )
+
+        StatsOutputWriter().write(report, legacy, options)
+        val first = json.readText()
+        StatsOutputWriter().write(report, legacy, options)
+
+        assertEquals(first, json.readText())
+        assertFalse(temp.root.listFiles()!!.any { it.name.endsWith(".tmp") })
+    }
+
     private fun options(
         develocity: Boolean,
         persistedTxt: File,
