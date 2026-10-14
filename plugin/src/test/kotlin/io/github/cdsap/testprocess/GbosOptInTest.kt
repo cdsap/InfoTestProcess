@@ -9,19 +9,12 @@ class GbosOptInTest {
     fun defaultsDisableAllGbosOutputs() {
         assertFalse(GbosOptIn.writeJson(enabled = false, json = null))
         assertFalse(GbosOptIn.writeNdjson(enabled = false, ndjson = null))
-        assertFalse(GbosOptIn.publishDevelocity(develocity = false))
     }
 
     @Test
     fun masterEnabledOptsIntoBothFileSinks() {
         assertTrue(GbosOptIn.writeJson(enabled = true, json = null))
         assertTrue(GbosOptIn.writeNdjson(enabled = true, ndjson = null))
-    }
-
-    @Test
-    fun masterEnabledDoesNotImplyDevelocityPublishing() {
-        assertFalse(GbosOptIn.publishDevelocity(develocity = false))
-        assertTrue(GbosOptIn.publishDevelocity(develocity = true))
     }
 
     @Test
@@ -33,8 +26,7 @@ class GbosOptInTest {
     }
 
     @Test
-    fun develocityIsIndependentOfFileOptIn() {
-        assertTrue(GbosOptIn.publishDevelocity(develocity = true))
+    fun fileSinksAreIndependentOfDevelocityPresence() {
         assertFalse(GbosOptIn.writeJson(enabled = false, json = null))
         assertFalse(GbosOptIn.writeNdjson(enabled = false, ndjson = null))
     }

@@ -61,7 +61,7 @@ class GbosSchemaValidationTest {
     @Test
     fun generatedJsonNdjsonAndDevelocityExamplesValidateAgainstPublicContract() {
         val scanData = RecordingBuildScanData()
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
@@ -180,7 +180,7 @@ class GbosSchemaValidationTest {
         }
         schema.validateDevelocityProjection(projection)
 
-        assert(scanData.values.none { it.first.startsWith("testProcess.") })
+        assert(scanData.values.any { it.first.startsWith("testProcess.") })
         assert(scanData.values.none { it.first.startsWith("gbos.v1.") && "13402" in it.first })
     }
 
@@ -203,14 +203,14 @@ class GbosSchemaValidationTest {
     }
 
     @Test
-    fun disabledByDefaultProducesNoGbosArtifactsToValidate() {
+    fun develocityProjectionIncludesLegacyCompatibilityValues() {
         val scanData = RecordingBuildScanData()
         BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
 
-        assert(scanData.values.none { it.first.startsWith("gbos.v1.") })
+        assert(scanData.values.any { it.first.startsWith("gbos.v1.") })
         assert(scanData.values.any { it.first.startsWith("testProcess.") })
     }
 

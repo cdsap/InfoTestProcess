@@ -1,6 +1,5 @@
 package io.github.cdsap.testprocess.report
 
-import io.github.cdsap.gbos.core.GbosObservation
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -61,29 +60,33 @@ internal class GbosOutputReport(
     private val outputNdjson: File
 ) {
     fun write(report: ReportDocument, writeJson: Boolean, writeNdjson: Boolean) {
-        if (!writeJson && !writeNdjson) {
-            outputJson.delete()
-            outputNdjson.delete()
-            return
-        }
-        val observations = GbosObservations.from(report)
-        writeSink(outputJson, writeJson, observations) { GbosObservations.encodeReport(it) }
-        writeSink(outputNdjson, writeNdjson, observations) { entries ->
-            entries.joinToString(separator = "\n", postfix = "\n", transform = GbosObservations::encode)
-        }
+        val (json, ndjson) = render(report, writeJson, writeNdjson)
+        replaceOrDelete(outputJson, json)
+        replaceOrDelete(outputNdjson, ndjson)
     }
 
-    private fun writeSink(
-        output: File,
-        enabled: Boolean,
-        observations: List<GbosObservation>,
-        encode: (List<GbosObservation>) -> String
-    ) {
-        if (!enabled || observations.isEmpty()) {
-            output.delete()
-            return
+    fun render(
+        report: ReportDocument,
+        writeJson: Boolean,
+        writeNdjson: Boolean
+    ): Pair<String?, String?> {
+        if (!writeJson && !writeNdjson) {
+            return null to null
         }
-        output.parentFile?.mkdirs()
-        output.writeText(encode(observations))
+        val observations = GbosObservations.from(report)
+        if (observations.isEmpty()) return null to null
+        return (
+            if (writeJson) GbosObservations.encodeReport(observations) else null
+            ) to (
+            if (writeNdjson) observations.joinToString(
+                separator = "\n",
+                postfix = "\n",
+                transform = GbosObservations::encode
+            ) else null
+            )
+    }
+
+    private fun replaceOrDelete(output: File, content: String?) {
+        if (content == null) output.delete() else AtomicFileWriter.replace(output, content)
     }
 }

@@ -14,9 +14,12 @@ data class OutputDocument(
 class OutputReport(val outputJson: File) {
 
     fun write(report: ReportDocument) {
+        AtomicFileWriter.replace(outputJson, render(report))
+    }
+
+    fun render(report: ReportDocument): String {
         if (report.workers.isEmpty()) {
-            outputJson.writeText("{}")
-            return
+            return "{}"
         }
         val doc = OutputDocument(
             summary = report.summary,
@@ -24,6 +27,6 @@ class OutputReport(val outputJson: File) {
             workers = report.workers,
             tags = report.tags
         )
-        outputJson.writeText(ReportJson.prettyJson.encodeToString(OutputDocument.serializer(), doc))
+        return ReportJson.prettyJson.encodeToString(OutputDocument.serializer(), doc)
     }
 }

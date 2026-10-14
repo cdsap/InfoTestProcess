@@ -61,7 +61,7 @@ class CharacterizationTest {
 
         BuildScanReport().extracted(fixtureReport(), sink)
 
-        assertEquals(EXPECTED_LEGACY_SCAN_LINES, sink.lines)
+        assertEquals(EXPECTED_LEGACY_SCAN_LINES, sink.legacyLines)
     }
 
     @Test
@@ -69,7 +69,7 @@ class CharacterizationTest {
         val overCap = RecordingBuildScanData()
         BuildScanReport().extracted(syntheticReport(workers = 952), overCap)
 
-        val keys = overCap.values.map { it.first }
+        val keys = overCap.legacyValues.map { it.first }
         assertEquals(SUMMARY_KEYS, keys.take(12))
         assertEquals((952L downTo 3L).map { "testProcess.worker.$it" }, keys.subList(12, 962))
         assertEquals(
@@ -78,23 +78,23 @@ class CharacterizationTest {
                 "testProcess.worker.truncated" to "true",
                 "testProcess.worker.total" to "952"
             ),
-            overCap.values.drop(962)
+            overCap.legacyValues.drop(962)
         )
         assertEquals(965, keys.size)
         assertEquals(emptyList<String>(), overCap.tags)
 
         val atCap = RecordingBuildScanData()
         BuildScanReport().extracted(syntheticReport(workers = 950), atCap)
-        assertEquals(963, atCap.values.size)
-        assertEquals("testProcess.worker.shown" to "950", atCap.values.last())
-        assertTrue(atCap.values.none { it.first == "testProcess.worker.truncated" || it.first == "testProcess.worker.total" })
+        assertEquals(963, atCap.legacyValues.size)
+        assertEquals("testProcess.worker.shown" to "950", atCap.legacyValues.last())
+        assertTrue(atCap.legacyValues.none { it.first == "testProcess.worker.truncated" || it.first == "testProcess.worker.total" })
     }
 
     @Test
-    fun gbosOptInReplacesLegacyValuesWithGbosValuesAndKeepsTags() {
+    fun automaticGbosProjectionKeepsLegacyValuesAndTags() {
         val sink = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(fixtureReport(), sink)
+        BuildScanReport().extracted(fixtureReport(), sink)
 
         assertEquals(
             listOf(
@@ -109,7 +109,7 @@ class CharacterizationTest {
                 "gbos.v1.index.info_test_process.jvm.process.cpu.time.sum",
                 "gbos.v1.index.info_test_process.jvm.process.memory.heap.peak.max"
             ),
-            sink.values.map { it.first }
+            sink.values.filter { it.first.startsWith("gbos") }.map { it.first }
         )
         val scalars = sink.values.filter { it.first != OBSERVATION_KEY }.toMap()
         assertEquals("1.0.0", scalars["gbos.schema"])
@@ -128,7 +128,7 @@ class CharacterizationTest {
     fun gbosObservationsAreCappedAndBuildObservationReportsDrops() {
         val sink = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(syntheticReport(workers = 952), sink)
+        BuildScanReport().extracted(syntheticReport(workers = 952), sink)
 
         val observations = sink.values.filter { it.first == OBSERVATION_KEY }.map { it.second.asJsonObject() }
         assertEquals(951, observations.size)
@@ -169,24 +169,24 @@ class CharacterizationTest {
         val beforeLines = pluginConsoleLines(run(before))
         val afterLines = pluginConsoleLines(run(after))
 
-        assertEquals(EXPECTED_LEGACY_SCAN_LINES, beforeLines)
+        assertEquals(EXPECTED_LEGACY_SCAN_LINES, beforeLines.filterLegacyScanLines())
         assertEquals(beforeLines, afterLines)
         listOf(before, after).forEach { assertDevelocityPathConsumedPersistedState(it) }
     }
 
     @Test
-    fun gbosOptInThroughDevelocityEmitsGbosValuesAndKeepsTags() {
+    fun develocityAutomaticallyEmitsGbosValuesAndKeepsTags() {
         val project = consumerProject(
             "gbos",
             listOf("com.gradle.develocity", "io.github.cdsap.testprocess"),
-            gradleProperties = "infoTestProcess.gbos.develocity.enabled=true"
+            gradleProperties = ""
         )
 
         val lines = pluginConsoleLines(run(project))
 
-        val unitLevel = RecordingBuildScanData().also { BuildScanReport(publishGbos = true).extracted(fixtureReport(), it) }
+        val unitLevel = RecordingBuildScanData().also { BuildScanReport().extracted(fixtureReport(), it) }
         assertEquals(unitLevel.lines, lines)
-        assertTrue(lines.none { it.startsWith("SCAN-VALUE testProcess.") })
+        assertTrue(lines.any { it.startsWith("SCAN-VALUE testProcess.") })
         assertEquals(EXPECTED_TAGS.map { "SCAN-TAG $it" }, lines.filter { it.startsWith("SCAN-TAG ") })
     }
 
@@ -212,7 +212,7 @@ class CharacterizationTest {
 
         assertTrue(stored.output.contains("Configuration cache entry stored."))
         assertTrue(reused.output.contains("Configuration cache entry reused."))
-        assertEquals(EXPECTED_LEGACY_SCAN_LINES, pluginConsoleLines(stored))
+        assertEquals(EXPECTED_LEGACY_SCAN_LINES, pluginConsoleLines(stored).filterLegacyScanLines())
         assertEquals(pluginConsoleLines(stored), pluginConsoleLines(reused))
         assertDevelocityPathConsumedPersistedState(withDevelocity)
 
@@ -364,6 +364,20 @@ class CharacterizationTest {
             tags += name
             lines += "SCAN-TAG $name"
         }
+
+        val legacyLines: List<String>
+            get() = lines.filter {
+                it.startsWith("SCAN-VALUE testProcess.") || it.startsWith("SCAN-TAG ")
+            }
+
+        val legacyValues: List<Pair<String, String>>
+            get() = values.filter { it.first.startsWith("testProcess.") }
+    }
+
+    private fun List<String>.filterLegacyScanLines(): List<String> = legacyScanLines(this)
+
+    private fun legacyScanLines(lines: List<String>): List<String> = lines.filter {
+        it.startsWith("SCAN-VALUE testProcess.") || it.startsWith("SCAN-TAG ")
     }
 
     private companion object {

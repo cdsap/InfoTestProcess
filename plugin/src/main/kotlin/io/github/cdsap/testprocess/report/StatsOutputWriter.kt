@@ -21,26 +21,27 @@ class StatsOutputWriter {
         legacyState: PersistedState,
         options: StatsOutputOptions
     ) {
+        // Render every enabled sink before replacing any stable path. A failed
+        // generation therefore leaves the complete previous report set intact.
+        val legacyContent = if (options.develocity) {
+            Json.encodeToString(PersistedState.serializer(), legacyState)
+        } else {
+            OutputReport(options.persistedJson).render(report)
+        }
+        val gbosContent = GbosOutputReport(options.gbosJson, options.gbosNdjson).render(
+            report,
+            writeJson = options.writeGbosJson,
+            writeNdjson = options.writeGbosNdjson
+        )
+
         if (options.develocity) {
-            val output = options.persistedTxt
-            output.parentFile?.mkdirs()
-            output.writeText(Json.encodeToString(PersistedState.serializer(), legacyState))
+            AtomicFileWriter.replace(options.persistedTxt, legacyContent)
         } else {
-            val outputJson = options.persistedJson
-            outputJson.parentFile?.mkdirs()
-            OutputReport(outputJson).write(report)
+            AtomicFileWriter.replace(options.persistedJson, legacyContent)
         }
-        val writeGbosJson = options.writeGbosJson
-        val writeGbosNdjson = options.writeGbosNdjson
-        if (writeGbosJson || writeGbosNdjson) {
-            GbosOutputReport(options.gbosJson, options.gbosNdjson).write(
-                report,
-                writeJson = writeGbosJson,
-                writeNdjson = writeGbosNdjson
-            )
-        } else {
-            options.gbosJson.delete()
-            options.gbosNdjson.delete()
-        }
+        gbosContent.first?.let { AtomicFileWriter.replace(options.gbosJson, it) }
+            ?: options.gbosJson.delete()
+        gbosContent.second?.let { AtomicFileWriter.replace(options.gbosNdjson, it) }
+            ?: options.gbosNdjson.delete()
     }
 }

@@ -41,7 +41,7 @@ class PublishedGbosSchemaValidationTest {
         contract.validateReport(ReportJson.json.parseToJsonElement(reportJson).jsonObject)
 
         val scanData = RecordingBuildScanData()
-        BuildScanReport(publishGbos = true).extracted(report, scanData)
+        BuildScanReport().extracted(report, scanData)
         val projection = buildJsonObject {
             put("schemaVersion", "1.0.0")
             put(

@@ -33,21 +33,21 @@ class BuildScanReportTest {
     )
 
     @Test
-    fun gbosDevelocityProjectionIsDisabledByDefault() {
+    fun develocityPublishesLegacyAndCanonicalValuesByDefault() {
         val scanData = RecordingBuildScanData()
 
         BuildScanReport().extracted(ReportDocument.from(processes, runtimeStats, Stats()), scanData)
 
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
-        assert(scanData.values.none { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
-        assert(scanData.values.none { it.first.startsWith("gbos.v1.index.") })
+        assert(scanData.values.any { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
+        assert(scanData.values.any { it.first.startsWith("gbos.v1.index.") })
     }
 
     @Test
     fun emitsCanonicalGbosObservationValuesWhenEnabled() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
@@ -67,9 +67,7 @@ class BuildScanReportTest {
         })
         assert(observations.all { it.keys.none { key -> key == "schemaVersion" || key == "producer" } })
         assert(observations.all { it["scope"]!!.jsonPrimitive.content == "jvm.process" })
-        assert(scanData.values.none { it.first.startsWith("testProcess.") }) {
-            "opted-in GBOS output must not include legacy testProcess custom values"
-        }
+        assert(scanData.values.any { it.first.startsWith("testProcess.") })
 
         val entity = observations.single { it["aggregationScope"]!!.jsonPrimitive.content == "entity" }
         val entityAttributes = entity["attributes"]!!.jsonObject
@@ -93,7 +91,7 @@ class BuildScanReportTest {
     fun emitsOnlyAllowlistedScalarIndexesFromBuildLevelMeasurements() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
             scanData
         )
@@ -130,12 +128,12 @@ class BuildScanReportTest {
         )
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport().extracted(
             ReportDocument.from(processes, heavyStats, Stats()),
             scanData
         )
 
-        assert(scanData.values.none { it.first.startsWith("testProcess.") })
+        assert(scanData.values.any { it.first.startsWith("testProcess.") })
         assert(scanData.tags == listOf("tests:cpu-heavy"))
         assert(scanData.values.any { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
     }
@@ -144,7 +142,7 @@ class BuildScanReportTest {
     fun omitsMissingSnapshotSentinelsFromGbosObservations() {
         val scanData = RecordingBuildScanData()
 
-        BuildScanReport(publishGbos = true).extracted(
+        BuildScanReport().extracted(
             ReportDocument.from(processes, emptyMap(), Stats(statsSnapshotsMissing = 1)),
             scanData
         )

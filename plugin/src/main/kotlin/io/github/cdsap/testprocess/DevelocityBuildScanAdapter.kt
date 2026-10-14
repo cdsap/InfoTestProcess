@@ -11,9 +11,7 @@ import org.gradle.api.provider.Provider
  * Infrastructure adapter that registers Develocity build-finished reporting and
  * translates Develocity [BuildScanConfiguration] callbacks into [BuildScanData].
  */
-class DevelocityBuildScanAdapter(
-    private val publishGbos: Boolean = false
-) {
+class DevelocityBuildScanAdapter {
 
     fun register(
         develocityConfiguration: DevelocityConfiguration,
@@ -23,7 +21,7 @@ class DevelocityBuildScanAdapter(
             val develocityValue = DevelocityValue(this)
             buildFinished {
                 if (provider.isPresent) {
-                    BuildScanReport(publishGbos).extracted(
+                    BuildScanReport().extracted(
                         provider.get(),
                         develocityValue
                     )
