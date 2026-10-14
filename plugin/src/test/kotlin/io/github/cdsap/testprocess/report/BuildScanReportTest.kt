@@ -8,6 +8,7 @@ import kotlinx.serialization.json.double
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class BuildScanReportTest {
@@ -44,7 +45,7 @@ class BuildScanReportTest {
     }
 
     @Test
-    fun emitsCanonicalGbosObservationValuesWhenEnabled() {
+    fun emitsExactLegacyAndGbosCustomValueSetForDevelocity() {
         val scanData = RecordingBuildScanData()
 
         BuildScanReport().extracted(
@@ -68,6 +69,33 @@ class BuildScanReportTest {
         assert(observations.all { it.keys.none { key -> key == "schemaVersion" || key == "producer" } })
         assert(observations.all { it["scope"]!!.jsonPrimitive.content == "jvm.process" })
         assert(scanData.values.any { it.first.startsWith("testProcess.") })
+
+        assertEquals(
+            setOf(
+                "testProcess.workers.count",
+                "testProcess.workers.tasksWith",
+                "testProcess.workers.snapshotsMissing",
+                "testProcess.cpuCoresAvg.max",
+                "testProcess.cpuTimeSec.sum",
+                "testProcess.heapPeakGb.max",
+                "testProcess.metaspacePeakMb.max",
+                "testProcess.jitSec.sum",
+                "testProcess.jitSec.max",
+                "testProcess.classesLoaded.max",
+                "testProcess.gcCollections.sum",
+                "testProcess.uptimeMin.sum",
+                "testProcess.worker.13402",
+                "testProcess.worker.shown",
+                GbosObservations.SCHEMA_CUSTOM_VALUE,
+                GbosObservations.PRODUCER_VERSION_CUSTOM_VALUE,
+                GbosObservations.PRODUCER_NAME_CUSTOM_VALUE,
+                GbosObservations.OBSERVATION_CUSTOM_VALUE,
+                "gbos.v1.index.info_test_process.jvm.process.cpu.cores.max",
+                "gbos.v1.index.info_test_process.jvm.process.cpu.time.sum",
+                "gbos.v1.index.info_test_process.jvm.process.memory.heap.peak.max"
+            ),
+            scanData.values.map { it.first }.toSet()
+        )
 
         val entity = observations.single { it["aggregationScope"]!!.jsonPrimitive.content == "entity" }
         val entityAttributes = entity["attributes"]!!.jsonObject

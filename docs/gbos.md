@@ -16,7 +16,23 @@ There is deliberately no `infoTestProcess.gbos.develocity.enabled` property. Dev
 
 ## Compatibility
 
-- Legacy `statsTestTasks.json`, `statsTestTasks.txt`, `testProcess.*` custom values, and scan tags remain available according to the existing Develocity mode. GBOS never replaces them.
+The GBOS file sinks and Develocity custom-value projection are independent. The
+accepted compatibility matrix is:
+
+| Develocity plugin | `infoTestProcess.develocity.enabled` | GBOS JSON / NDJSON flags | Build Scan custom values | Local report output |
+|---|---|---|---|---|
+| absent | any | any | none | `statsTestTasks.json`, plus each enabled GBOS file sink |
+| present | `true` (default) | either or both | legacy `testProcess.*` values **and** GBOS projection | `statsTestTasks.txt`, plus each enabled GBOS file sink |
+| present | `false` | either or both | none | `statsTestTasks.json`, plus each enabled GBOS file sink |
+
+The exact GBOS file flags do not add or remove Build Scan values. They only
+control `gbos.json` and `gbos.ndjson`. Likewise, `infoTestProcess.develocity.enabled`
+is the separate legacy-output switch; disabling it suppresses the entire
+Develocity custom-value set, including GBOS values.
+
+Legacy `statsTestTasks.json`, `statsTestTasks.txt`, `testProcess.*` custom values,
+and scan tags remain available according to the matrix above. GBOS never
+replaces legacy values in this major version.
 - Without Develocity, local GBOS JSON/NDJSON output still works and the legacy `statsTestTasks.json` report is written as before.
 - `gbos.json` is a GBOS report envelope; it is not the legacy `statsTestTasks.json` format. NDJSON contains one canonical observation per line. Both are produced from the same observation model used for Develocity.
 - Stable report paths are replaced only after successful generation. Outputs do not append across builds or create timestamped files by default.

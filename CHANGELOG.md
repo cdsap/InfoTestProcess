@@ -10,13 +10,16 @@
 ### Experimental — GBOS opt-in Develocity projection
 
 - Added an **experimental, opt-in** GBOS (Gradle Build Observability Schema)
-  Develocity projection. Enable with
-  `infoTestProcess.gbos.develocity.enabled=true`.
-- **No default behavior change.** With the property unset or `false`, builds
-  continue to emit only the existing `testProcess.*` custom values, scan tags,
-  and `statsTestTasks.json` output.
-- Legacy keys and tags are **retained** for this major version while GBOS is
-  dual-published when enabled.
+  file-output feature. Enable `infoTestProcess.gbos.enabled=true`, or enable
+  either format-specific file sink independently.
+- Develocity is detected automatically. When it is present and legacy
+  reporting is enabled, the Build Scan receives both the existing
+  `testProcess.*` custom values and the GBOS projection. GBOS file-sink
+  properties do not control this projection.
+- The independent legacy-output switch is
+  `infoTestProcess.develocity.enabled` (default `true` with Develocity). Set it
+  to `false` to omit both legacy and GBOS Develocity custom values and use the
+  JSON report path instead.
 - Schema validation of generated GBOS observation / report / NDJSON / Develocity
   examples runs in tests/CI against the released
   [`io.github.cdsap:build-observability-schema`](https://github.com/cdsap/build-observability-schema)

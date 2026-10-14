@@ -39,6 +39,9 @@ GBOS local file output is experimental and disabled by default
 (`infoTestProcess.gbos.enabled=false`). Enabling local sinks does not change
 legacy JSON, Build Scan custom values, or tags. When Develocity is available,
 its GBOS projection is published automatically alongside legacy values.
+The separate `infoTestProcess.develocity.enabled` switch controls whether any
+Develocity custom values are published; setting it to `false` suppresses both
+the legacy and GBOS custom-value sets.
 Prefer Gradle properties for CI-friendly file-sink opt-in.
 
 ## Output

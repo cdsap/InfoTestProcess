@@ -191,6 +191,30 @@ class CharacterizationTest {
     }
 
     @Test
+    fun formatSpecificGbosFlagsDoNotChangeTheDevelocityCustomValueSet() {
+        val project = consumerProject(
+            "gbos-file-flags",
+            listOf("com.gradle.develocity", "io.github.cdsap.testprocess"),
+            gradleProperties = """
+                infoTestProcess.gbos.json.enabled=true
+                infoTestProcess.gbos.ndjson.enabled=true
+            """.trimIndent()
+        )
+
+        val lines = pluginConsoleLines(run(project))
+        val expected = pluginConsoleLines(
+            run(
+                consumerProject(
+                    "gbos-file-flags-baseline",
+                    listOf("com.gradle.develocity", "io.github.cdsap.testprocess")
+                )
+            )
+        )
+
+        assertEquals(expected, lines)
+    }
+
+    @Test
     fun withoutDevelocityThePluginPrintsNothingAndWritesStatsTestTasksJson() {
         val project = consumerProject("no-develocity", listOf("io.github.cdsap.testprocess"))
 
