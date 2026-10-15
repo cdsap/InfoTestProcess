@@ -33,11 +33,8 @@ abstract class PersistedDeserializationValueSource :
         } else {
             try {
                 json.decodeFromString(content)
-            } catch (e: SerializationException) {
-                when (e) {
-                    is SerializationException, is IllegalStateException -> null
-                    else -> throw e
-                }
+            } catch (_: SerializationException) {
+                null
             }
         }
     }
