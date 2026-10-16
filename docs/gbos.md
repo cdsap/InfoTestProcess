@@ -4,13 +4,11 @@ Info Test Process can write [Gradle Build Observability Schema (GBOS)](https://g
 
 ## Configuration
 
-GBOS file output is disabled by default. The master option enables both file sinks; format-specific options can enable or disable each sink independently:
+GBOS file output is disabled by default. A single option enables both file sinks:
 
 | Property | Default | Effect |
 |---|---|---|
-| `infoTestProcess.gbos.enabled` | `false` | Enables both local GBOS file sinks |
-| `infoTestProcess.gbos.json.enabled` | follows `gbos.enabled` | Enables `gbos.json` |
-| `infoTestProcess.gbos.ndjson.enabled` | follows `gbos.enabled` | Enables `gbos.ndjson` |
+| `infoTestProcess.gbos.enabled` | `false` | Enables both local GBOS file sinks (`gbos.json` and `gbos.ndjson`) |
 
 There is deliberately no `infoTestProcess.gbos.develocity.enabled` property. Develocity presence is detected from the applied plugin, while `infoTestProcess.develocity.enabled` remains the legacy switch for Build Scan reporting and `statsTestTasks.txt` persistence.
 
@@ -19,14 +17,14 @@ There is deliberately no `infoTestProcess.gbos.develocity.enabled` property. Dev
 The GBOS file sinks and Develocity custom-value projection are independent. The
 accepted compatibility matrix is:
 
-| Develocity plugin | `infoTestProcess.develocity.enabled` | GBOS JSON / NDJSON flags | Build Scan custom values | Local report output |
+| Develocity plugin | `infoTestProcess.develocity.enabled` | `infoTestProcess.gbos.enabled` | Build Scan custom values | Local report output |
 |---|---|---|---|---|
-| absent | any | any | none | `statsTestTasks.json`, plus each enabled GBOS file sink |
-| present | `true` (default) | either or both | legacy `testProcess.*` values **and** GBOS projection | `statsTestTasks.txt`, plus each enabled GBOS file sink |
-| present | `false` | either or both | none | `statsTestTasks.json`, plus each enabled GBOS file sink |
+| absent | any | any | none | `statsTestTasks.json`, plus both GBOS file sinks when enabled |
+| present | `true` (default) | any | legacy `testProcess.*` values **and** GBOS projection | `statsTestTasks.txt`, plus both GBOS file sinks when enabled |
+| present | `false` | any | none | `statsTestTasks.json`, plus both GBOS file sinks when enabled |
 
-The exact GBOS file flags do not add or remove Build Scan values. They only
-control `gbos.json` and `gbos.ndjson`. Likewise, `infoTestProcess.develocity.enabled`
+`infoTestProcess.gbos.enabled` only controls `gbos.json` and `gbos.ndjson`. It does
+not add or remove Build Scan values. Likewise, `infoTestProcess.develocity.enabled`
 is the separate legacy-output switch; disabling it suppresses the entire
 Develocity custom-value set, including GBOS values.
 

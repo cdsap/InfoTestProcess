@@ -10,12 +10,12 @@
 ### Experimental — GBOS opt-in Develocity projection
 
 - Added an **experimental, opt-in** GBOS (Gradle Build Observability Schema)
-  file-output feature. Enable `infoTestProcess.gbos.enabled=true`, or enable
-  either format-specific file sink independently.
+  file-output feature. Enable `infoTestProcess.gbos.enabled=true` to write both
+  local file sinks (`gbos.json` and `gbos.ndjson`).
 - Develocity is detected automatically. When it is present and legacy
   reporting is enabled, the Build Scan receives both the existing
-  `testProcess.*` custom values and the GBOS projection. GBOS file-sink
-  properties do not control this projection.
+  `testProcess.*` custom values and the GBOS projection. The GBOS file-sink
+  property does not control this projection.
 - The independent legacy-output switch is
   `infoTestProcess.develocity.enabled` (default `true` with Develocity). Set it
   to `false` to omit both legacy and GBOS Develocity custom values and use the

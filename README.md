@@ -118,21 +118,14 @@ allowlisted build-level scalar indexes:
 
 ### Optional GBOS file output
 
-GBOS file output is off unless you opt in. The simplest CI-friendly switch:
+GBOS file output is off unless you opt in. The CI-friendly switch enables both
+JSON and NDJSON sinks:
 
 ```properties
 infoTestProcess.gbos.enabled=true
 ```
 
-That enables both JSON and NDJSON sinks. You can also target a single sink
-(these override the master flag when set):
-
-```properties
-infoTestProcess.gbos.json.enabled=true
-infoTestProcess.gbos.ndjson.enabled=true
-```
-
-The same options are available on the Settings extension:
+The same option is available on the Settings extension:
 
 ```kotlin
 infoTestProcess {
