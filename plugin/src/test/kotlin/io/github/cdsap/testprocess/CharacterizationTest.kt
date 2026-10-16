@@ -91,11 +91,12 @@ class CharacterizationTest {
     }
 
     @Test
-    fun automaticGbosProjectionKeepsLegacyValuesAndTags() {
+    fun gbosOptInReplacesLegacyValuesAndKeepsTags() {
         val sink = RecordingBuildScanData()
 
-        BuildScanReport().extracted(fixtureReport(), sink)
+        BuildScanReport().extracted(fixtureReport(), sink, gbosEnabled = true)
 
+        assertTrue(sink.legacyValues.isEmpty())
         assertEquals(
             listOf(
                 "gbos.schema",
@@ -128,7 +129,7 @@ class CharacterizationTest {
     fun gbosObservationsAreCappedAndBuildObservationReportsDrops() {
         val sink = RecordingBuildScanData()
 
-        BuildScanReport().extracted(syntheticReport(workers = 952), sink)
+        BuildScanReport().extracted(syntheticReport(workers = 952), sink, gbosEnabled = true)
 
         val observations = sink.values.filter { it.first == OBSERVATION_KEY }.map { it.second.asJsonObject() }
         assertEquals(951, observations.size)
@@ -175,9 +176,9 @@ class CharacterizationTest {
     }
 
     @Test
-    fun develocityAutomaticallyEmitsGbosValuesAndKeepsTags() {
+    fun develocityWithoutGbosOptInEmitsLegacyValuesAndTags() {
         val project = consumerProject(
-            "gbos",
+            "legacy",
             listOf("com.gradle.develocity", "io.github.cdsap.testprocess"),
             gradleProperties = ""
         )
@@ -187,28 +188,23 @@ class CharacterizationTest {
         val unitLevel = RecordingBuildScanData().also { BuildScanReport().extracted(fixtureReport(), it) }
         assertEquals(unitLevel.lines, lines)
         assertTrue(lines.any { it.startsWith("SCAN-VALUE testProcess.") })
+        assertTrue(lines.none { it.startsWith("SCAN-VALUE gbos.") })
         assertEquals(EXPECTED_TAGS.map { "SCAN-TAG $it" }, lines.filter { it.startsWith("SCAN-TAG ") })
     }
 
     @Test
-    fun gbosFileOptInDoesNotChangeTheDevelocityCustomValueSet() {
+    fun gbosOptInReplacesLegacyDevelocityCustomValues() {
         val project = consumerProject(
-            "gbos-file-opt-in",
+            "gbos-opt-in",
             listOf("com.gradle.develocity", "io.github.cdsap.testprocess"),
             gradleProperties = "infoTestProcess.gbos.enabled=true"
         )
 
         val lines = pluginConsoleLines(run(project))
-        val expected = pluginConsoleLines(
-            run(
-                consumerProject(
-                    "gbos-file-opt-in-baseline",
-                    listOf("com.gradle.develocity", "io.github.cdsap.testprocess")
-                )
-            )
-        )
 
-        assertEquals(expected, lines)
+        assertTrue(lines.any { it.startsWith("SCAN-VALUE gbos.") })
+        assertTrue(lines.none { it.startsWith("SCAN-VALUE testProcess.") })
+        assertEquals(EXPECTED_TAGS.map { "SCAN-TAG $it" }, lines.filter { it.startsWith("SCAN-TAG ") })
     }
 
     @Test

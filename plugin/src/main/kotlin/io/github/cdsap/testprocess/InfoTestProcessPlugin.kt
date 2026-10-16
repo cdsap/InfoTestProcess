@@ -95,7 +95,8 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                     DevelocityBuildScanAdapter()
                         .register(
                             target.extensions.getByType(DevelocityConfiguration::class.java),
-                            reportProvider
+                            reportProvider,
+                            infoTestProcess.gbos.enabled,
                         )
                 }
             }

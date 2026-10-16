@@ -35,14 +35,14 @@ legacy output in two modes:
 | Develocity applied | Custom values + scan tags published to the Build Scan |
 | No Develocity | Structured JSON file at `${rootDir}/build/info-test-process/statsTestTasks.json` |
 
-GBOS local file output is experimental and disabled by default
-(`infoTestProcess.gbos.enabled=false`). Enabling local sinks does not change
-legacy JSON, Build Scan custom values, or tags. When Develocity is available,
-its GBOS projection is published automatically alongside legacy values.
+GBOS output is experimental and disabled by default
+(`infoTestProcess.gbos.enabled=false`). Enabling it writes local GBOS JSON/NDJSON
+and, when Develocity is available, publishes the GBOS Build Scan projection in
+place of legacy `testProcess.*` custom values (scan tags are unchanged).
 The separate `infoTestProcess.develocity.enabled` switch controls whether any
 Develocity custom values are published; setting it to `false` suppresses both
 the legacy and GBOS custom-value sets.
-Prefer Gradle properties for CI-friendly file-sink opt-in.
+Prefer Gradle properties for CI-friendly opt-in.
 
 ## Output
 
@@ -100,10 +100,9 @@ know data was dropped.
 #### Optional GBOS projection (experimental)
 
 GBOS ([Gradle Build Observability Schema](https://github.com/cdsap/build-observability-schema))
-is an **experimental, opt-in** file-output feature. Develocity is detected
-automatically: when it is available, canonical GBOS observations are published
-alongside the legacy `testProcess.*` custom values and tags. There is no
-separate GBOS Develocity switch.
+is an **experimental, opt-in** feature. When Develocity is available and GBOS is
+enabled, canonical GBOS observations replace the legacy `testProcess.*` custom
+values; scan tags are unchanged. There is no separate GBOS Develocity switch.
 
 The projection emits canonical observations as repeated `gbos.v1.observation`
 custom values. Any PID, task path, or test executor identity is stored inside the
@@ -182,7 +181,7 @@ replaced by GBOS JSON.
 Generated GBOS examples are validated in CI against the released
 `build-observability-schema` Maven Central contract (test-only; not a runtime
 dependency). See [docs/gbos.md](docs/gbos.md) for opt-in flags, compatibility
-rules, and legacy key retention.
+rules, and how GBOS replaces legacy Develocity custom values.
 
 #### Scan tags
 
