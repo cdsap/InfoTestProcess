@@ -1,6 +1,7 @@
 package io.github.cdsap.testprocess.agent
 
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
+import io.github.cdsap.testprocess.service.WorkerStateReader
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -20,14 +21,14 @@ data class WorkerRegistrySnapshot(
     val runtimeStats: List<WorkerRuntimeStats>
 )
 
-object WorkerRegistry {
+object WorkerRegistry : WorkerStateReader {
     private val json = Json { ignoreUnknownKeys = true }
     private const val STATS_SUFFIX = ".stats.json"
     private const val IDENTITY_SUFFIX = ".json"
 
-    fun readSnapshot(dir: File): WorkerRegistrySnapshot = WorkerRegistrySnapshot(
-        identityEntries = readIdentityEntries(dir),
-        runtimeStats = readRuntimeStats(dir)
+    override fun readSnapshot(registryDir: File): WorkerRegistrySnapshot = WorkerRegistrySnapshot(
+        identityEntries = readIdentityEntries(registryDir),
+        runtimeStats = readRuntimeStats(registryDir)
     )
 
     private fun readIdentityEntries(dir: File): List<WorkerRegistryEntry> {
