@@ -15,7 +15,8 @@ class DevelocityBuildScanAdapter {
 
     fun register(
         develocityConfiguration: DevelocityConfiguration,
-        provider: Provider<ReportDocument>
+        provider: Provider<ReportDocument>,
+        gbosEnabled: Provider<Boolean>,
     ) {
         develocityConfiguration.buildScan {
             val develocityValue = DevelocityValue(this)
@@ -23,7 +24,8 @@ class DevelocityBuildScanAdapter {
                 if (provider.isPresent) {
                     BuildScanReport().extracted(
                         provider.get(),
-                        develocityValue
+                        develocityValue,
+                        gbosEnabled.get(),
                     )
                 }
             }

@@ -34,13 +34,10 @@ abstract class DevelocityReportingExtension {
 }
 
 /**
- * Opt-in GBOS configuration. All flags default to disabled.
+ * Opt-in GBOS configuration. Defaults to disabled.
  *
- * - [enabled] turns on both file sinks (JSON + NDJSON) unless overridden.
- * - [json] / [ndjson] refine file output independently of each other.
+ * [enabled] turns on both local file sinks (JSON + NDJSON).
  */
 abstract class GbosExtension {
     abstract val enabled: Property<Boolean>
-    abstract val json: Property<Boolean>
-    abstract val ndjson: Property<Boolean>
 }

@@ -34,23 +34,23 @@ class BuildScanReportTest {
     )
 
     @Test
-    fun develocityPublishesLegacyAndCanonicalValuesByDefault() {
+    fun develocityPublishesLegacyValuesByDefault() {
         val scanData = RecordingBuildScanData()
 
         BuildScanReport().extracted(ReportDocument.from(processes, runtimeStats, Stats()), scanData)
 
         assert(scanData.values.any { it.first == "testProcess.cpuTimeSec.sum" })
-        assert(scanData.values.any { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
-        assert(scanData.values.any { it.first.startsWith("gbos.v1.index.") })
+        assert(scanData.values.none { it.first.startsWith("gbos.") })
     }
 
     @Test
-    fun emitsExactLegacyAndGbosCustomValueSetForDevelocity() {
+    fun gbosOptInEmitsExactGbosCustomValueSetWithoutLegacy() {
         val scanData = RecordingBuildScanData()
 
         BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
-            scanData
+            scanData,
+            gbosEnabled = true,
         )
 
         val observations = scanData.values
@@ -68,24 +68,10 @@ class BuildScanReportTest {
         })
         assert(observations.all { it.keys.none { key -> key == "schemaVersion" || key == "producer" } })
         assert(observations.all { it["scope"]!!.jsonPrimitive.content == "jvm.process" })
-        assert(scanData.values.any { it.first.startsWith("testProcess.") })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") })
 
         assertEquals(
             setOf(
-                "testProcess.workers.count",
-                "testProcess.workers.tasksWith",
-                "testProcess.workers.snapshotsMissing",
-                "testProcess.cpuCoresAvg.max",
-                "testProcess.cpuTimeSec.sum",
-                "testProcess.heapPeakGb.max",
-                "testProcess.metaspacePeakMb.max",
-                "testProcess.jitSec.sum",
-                "testProcess.jitSec.max",
-                "testProcess.classesLoaded.max",
-                "testProcess.gcCollections.sum",
-                "testProcess.uptimeMin.sum",
-                "testProcess.worker.13402",
-                "testProcess.worker.shown",
                 GbosObservations.SCHEMA_CUSTOM_VALUE,
                 GbosObservations.PRODUCER_VERSION_CUSTOM_VALUE,
                 GbosObservations.PRODUCER_NAME_CUSTOM_VALUE,
@@ -121,7 +107,8 @@ class BuildScanReportTest {
 
         BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
-            scanData
+            scanData,
+            gbosEnabled = true,
         )
 
         val indexes = scanData.values
@@ -158,10 +145,11 @@ class BuildScanReportTest {
 
         BuildScanReport().extracted(
             ReportDocument.from(processes, heavyStats, Stats()),
-            scanData
+            scanData,
+            gbosEnabled = true,
         )
 
-        assert(scanData.values.any { it.first.startsWith("testProcess.") })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") })
         assert(scanData.tags == listOf("tests:cpu-heavy"))
         assert(scanData.values.any { it.first == GbosObservations.OBSERVATION_CUSTOM_VALUE })
     }
@@ -172,7 +160,8 @@ class BuildScanReportTest {
 
         BuildScanReport().extracted(
             ReportDocument.from(processes, emptyMap(), Stats(statsSnapshotsMissing = 1)),
-            scanData
+            scanData,
+            gbosEnabled = true,
         )
 
         val observations = scanData.values

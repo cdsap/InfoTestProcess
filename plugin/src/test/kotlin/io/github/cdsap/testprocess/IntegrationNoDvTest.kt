@@ -105,13 +105,9 @@ class IntegrationNoDvTest {
     }
 
     @Test
-    fun gbosFilesAreGeneratedOnlyWhenOptedIn() {
-
+    fun gbosEnabledPropertyOptsIntoBothFileSinks() {
         createProject(
-            extraGradleProperties = """
-                    infoTestProcess.gbos.json.enabled=true
-                    infoTestProcess.gbos.ndjson.enabled=true
-            """.trimIndent()
+            extraGradleProperties = "infoTestProcess.gbos.enabled=true"
         )
 
         GradleRunner.create()
@@ -129,26 +125,6 @@ class IntegrationNoDvTest {
         val lines = gbosNdjson.readLines()
         assertTrue(lines.isNotEmpty())
         assertTrue(lines.all { it.startsWith("{") && it.endsWith("}") })
-    }
-
-    @Test
-    fun gbosMasterEnabledPropertyOptsIntoBothFileSinks() {
-        createProject(
-            extraGradleProperties = "infoTestProcess.gbos.enabled=true"
-        )
-
-        GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
-            .withArguments("test", "--configuration-cache")
-            .withPluginClasspath()
-            .withGradleVersion("9.7.1")
-            .build()
-
-        val gbosJson = File("${testProjectDir.root}/build/info-test-process/gbos.json")
-        val gbosNdjson = File("${testProjectDir.root}/build/info-test-process/gbos.ndjson")
-        assertTrue(gbosJson.exists())
-        assertTrue(gbosNdjson.exists())
-        assertTrue(gbosJson.readText().contains("\"observations\""))
     }
 
     @Test

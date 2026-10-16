@@ -63,7 +63,8 @@ class GbosSchemaValidationTest {
         val scanData = RecordingBuildScanData()
         BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
-            scanData
+            scanData,
+            gbosEnabled = true,
         )
 
         val gbosValues = scanData.values.filter { it.first.startsWith("gbos.") }
@@ -180,7 +181,7 @@ class GbosSchemaValidationTest {
         }
         schema.validateDevelocityProjection(projection)
 
-        assert(scanData.values.any { it.first.startsWith("testProcess.") })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") })
         assert(scanData.values.none { it.first.startsWith("gbos.v1.") && "13402" in it.first })
     }
 
@@ -203,15 +204,16 @@ class GbosSchemaValidationTest {
     }
 
     @Test
-    fun develocityProjectionIncludesLegacyCompatibilityValues() {
+    fun gbosOptInReplacesLegacyDevelocityValues() {
         val scanData = RecordingBuildScanData()
         BuildScanReport().extracted(
             ReportDocument.from(processes, runtimeStats, Stats()),
-            scanData
+            scanData,
+            gbosEnabled = true,
         )
 
         assert(scanData.values.any { it.first.startsWith("gbos.v1.") })
-        assert(scanData.values.any { it.first.startsWith("testProcess.") })
+        assert(scanData.values.none { it.first.startsWith("testProcess.") })
     }
 
     private class RecordingBuildScanData : BuildScanData {

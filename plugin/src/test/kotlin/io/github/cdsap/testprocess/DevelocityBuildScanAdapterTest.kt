@@ -11,12 +11,17 @@ class DevelocityBuildScanAdapterTest {
         val register = DevelocityBuildScanAdapter::class.java.getDeclaredMethod(
             "register",
             DevelocityConfiguration::class.java,
-            Provider::class.java
+            Provider::class.java,
+            Provider::class.java,
         )
 
         assertEquals(
             "org.gradle.api.provider.Provider<io.github.cdsap.testprocess.report.ReportDocument>",
             register.genericParameterTypes[1].typeName
+        )
+        assertEquals(
+            "org.gradle.api.provider.Provider<java.lang.Boolean>",
+            register.genericParameterTypes[2].typeName
         )
     }
 }

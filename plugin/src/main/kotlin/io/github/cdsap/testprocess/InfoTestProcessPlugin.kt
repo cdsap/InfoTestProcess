@@ -77,8 +77,8 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                         infoTestProcess.develocity.enabled.get()
                     )
                 })
-                parameters.gbosJsonOutput.set(infoTestProcess.gbos.json)
-                parameters.gbosNdjsonOutput.set(infoTestProcess.gbos.ndjson)
+                parameters.gbosJsonOutput.set(infoTestProcess.gbos.enabled)
+                parameters.gbosNdjsonOutput.set(infoTestProcess.gbos.enabled)
             }
 
             val persistedStateProvider = providers.of(PersistedDeserializationValueSource::class) {
@@ -95,7 +95,8 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                     DevelocityBuildScanAdapter()
                         .register(
                             target.extensions.getByType(DevelocityConfiguration::class.java),
-                            reportProvider
+                            reportProvider,
+                            infoTestProcess.gbos.enabled,
                         )
                 }
             }
