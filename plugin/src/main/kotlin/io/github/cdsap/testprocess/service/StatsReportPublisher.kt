@@ -2,6 +2,7 @@ package io.github.cdsap.testprocess.service
 
 import io.github.cdsap.testprocess.agent.WorkerStateCollector
 import io.github.cdsap.testprocess.agent.WorkerRegistry
+import io.github.cdsap.testprocess.agent.WorkerStateReader
 import io.github.cdsap.testprocess.model.Stats
 import io.github.cdsap.testprocess.model.TestProcess
 import io.github.cdsap.testprocess.report.ReportDocument

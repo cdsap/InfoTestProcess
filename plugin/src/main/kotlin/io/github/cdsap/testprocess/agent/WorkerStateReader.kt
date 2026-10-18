@@ -1,6 +1,5 @@
-package io.github.cdsap.testprocess.service
+package io.github.cdsap.testprocess.agent
 
-import io.github.cdsap.testprocess.agent.WorkerRegistrySnapshot
 import java.io.File
 
 fun interface WorkerStateReader {
