@@ -76,6 +76,26 @@ class StatsOutputWriterTest {
     }
 
     @Test
+    fun legacyOutputWriterWritesOnlyTheSelectedLegacyFormat() {
+        val txt = File(temp.root, "statsTestTasks.txt")
+        val json = File(temp.root, "statsTestTasks.json")
+        val legacy = sampleLegacyState()
+        val report = ReportDocument.from(legacy.processes, legacy.runtimeStats, legacy.stats)
+
+        LegacyOutputWriter().write(
+            report = report,
+            legacyState = legacy,
+            develocity = true,
+            persistedTxt = txt,
+            persistedJson = json
+        )
+
+        assertTrue(txt.exists())
+        assertFalse(json.exists())
+        assertEquals(legacy, Json.decodeFromString(PersistedState.serializer(), txt.readText()))
+    }
+
+    @Test
     fun gbosEnabledWritesJsonAndNdjson() {
         val legacy = sampleLegacyState()
         val report = ReportDocument.from(legacy.processes, legacy.runtimeStats, legacy.stats)
