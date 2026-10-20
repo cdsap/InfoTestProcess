@@ -7,7 +7,11 @@ internal class GbosOutputReport(
     private val outputNdjson: File
 ) {
     fun write(report: ReportDocument, writeJson: Boolean, writeNdjson: Boolean) {
-        val (json, ndjson) = render(report, writeJson, writeNdjson)
+        write(render(report, writeJson, writeNdjson))
+    }
+
+    fun write(rendered: Pair<String?, String?>) {
+        val (json, ndjson) = rendered
         replaceOrDelete(outputJson, json)
         replaceOrDelete(outputNdjson, ndjson)
     }
