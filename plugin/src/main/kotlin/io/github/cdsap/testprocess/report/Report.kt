@@ -16,7 +16,7 @@ internal object WorkerReportInput {
         processes: Map<Long, TestProcess>,
         runtimeStats: Map<Long, WorkerRuntimeStats>
     ): List<WorkerProcessInfo> =
-        processes.map { (pid, proc) -> ReportJson.workerInfo(proc, runtimeStats[pid], pid) }
+        WorkerReportProjector.from(processes, runtimeStats)
 }
 
 /**
@@ -103,48 +103,6 @@ data class TaskSummary(
 internal object ReportJson {
     val json = Json { prettyPrint = false; encodeDefaults = true }
     val prettyJson = Json { prettyPrint = true; encodeDefaults = true }
-
-    fun workerInfo(proc: TestProcess, s: WorkerRuntimeStats?, pid: Long): WorkerProcessInfo {
-        if (s == null) {
-            return WorkerProcessInfo(
-                pid = pid,
-                task = proc.task,
-                executor = proc.executor,
-                xmx = proc.max,
-                uptimeMin = 0.0,
-                cpuTimeSec = 0.0,
-                cpuCoresAvg = 0.0,
-                heapUsageGb = 0.0,
-                heapPeakGb = 0.0,
-                metaspacePeakMb = 0.0,
-                gcType = "Unknown",
-                gcCollections = 0,
-                gcTimeSec = 0.0,
-                jitSec = 0.0,
-                classesLoaded = -1,
-                peakThreads = -1,
-                statsSnapshotMissing = true
-            )
-        }
-        return WorkerProcessInfo(
-            pid = pid,
-            task = proc.task,
-            executor = proc.executor,
-            xmx = proc.max,
-            uptimeMin = StatFormat.minutes(s.uptimeMs),
-            cpuTimeSec = StatFormat.seconds(s.cpuTimeMs),
-            cpuCoresAvg = StatFormat.cores(s.cpuTimeMs, s.uptimeMs),
-            heapUsageGb = StatFormat.gigs(s.usedHeapBytes),
-            heapPeakGb = StatFormat.gigs(s.peakHeapBytes),
-            metaspacePeakMb = StatFormat.megs(s.peakMetaspaceBytes),
-            gcType = s.gcType,
-            gcCollections = s.gcCollections,
-            gcTimeSec = StatFormat.seconds(s.gcTimeMs),
-            jitSec = StatFormat.seconds(s.jitTimeMs),
-            classesLoaded = s.classesLoaded,
-            peakThreads = s.peakThreads
-        )
-    }
 }
 
 /**
