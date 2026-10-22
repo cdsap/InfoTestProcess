@@ -1,6 +1,7 @@
 package io.github.cdsap.testprocess.agent
 
 import io.github.cdsap.testprocess.model.WorkerRuntimeStats
+import io.github.cdsap.testprocess.service.WorkerStateReader
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
