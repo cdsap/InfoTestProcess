@@ -46,6 +46,28 @@ Develocity custom values are published; setting it to `false` suppresses both
 the legacy and GBOS custom-value sets.
 Prefer Gradle properties for CI-friendly opt-in.
 
+### Gradle properties
+
+Add these properties to the root project's `gradle.properties` file when you
+want GBOS output:
+
+```properties
+# Write GBOS JSON and NDJSON files.
+infoTestProcess.gbos.enabled=true
+
+# Also publish GBOS values to Develocity when a Build Scan is available.
+infoTestProcess.gbos.develocity.enabled=true
+```
+
+The file and Develocity switches are independent. To enable either option for
+one build without editing `gradle.properties`, pass the corresponding property
+on the command line:
+
+```shell
+./gradlew test -PinfoTestProcess.gbos.enabled=true
+./gradlew test -PinfoTestProcess.gbos.develocity.enabled=true
+```
+
 ## Output
 
 ### Build Scan custom values
