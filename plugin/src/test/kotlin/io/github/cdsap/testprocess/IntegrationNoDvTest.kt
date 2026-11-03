@@ -150,6 +150,30 @@ class IntegrationNoDvTest {
         assertTrue(File("${testProjectDir.root}/build/info-test-process/gbos.ndjson").exists())
     }
 
+    @Test
+    fun gbosExtensionDslOverridesGradleProperty() {
+        createProject(
+            extraGradleProperties = "infoTestProcess.gbos.enabled=true",
+            settingsExtra = """
+                    infoTestProcess {
+                        gbos {
+                            enabled = false
+                        }
+                    }
+            """.trimIndent()
+        )
+
+        GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments("test", "--configuration-cache")
+            .withPluginClasspath()
+            .withGradleVersion("9.7.1")
+            .build()
+
+        assertTrue(!File("${testProjectDir.root}/build/info-test-process/gbos.json").exists())
+        assertTrue(!File("${testProjectDir.root}/build/info-test-process/gbos.ndjson").exists())
+    }
+
     private fun createProject(
         extraGradleProperties: String = "",
         settingsExtra: String = "",

@@ -36,9 +36,11 @@ legacy output in two modes:
 | No Develocity | Structured JSON file at `${rootDir}/build/info-test-process/statsTestTasks.json` |
 
 GBOS output is experimental and disabled by default
-(`infoTestProcess.gbos.enabled=false`). Enabling it writes local GBOS JSON/NDJSON
-and, when Develocity is available, publishes the GBOS Build Scan projection in
-place of legacy `testProcess.*` custom values (scan tags are unchanged).
+(`infoTestProcess.gbos.enabled=false` and
+`infoTestProcess.gbos.develocity.enabled=false`). The two opt-ins are independent:
+the first writes local GBOS JSON/NDJSON, while the second publishes the GBOS Build
+Scan projection in place of legacy `testProcess.*` custom values (scan tags are
+unchanged).
 The separate `infoTestProcess.develocity.enabled` switch controls whether any
 Develocity custom values are published; setting it to `false` suppresses both
 the legacy and GBOS custom-value sets.
@@ -100,9 +102,9 @@ know data was dropped.
 #### Optional GBOS projection (experimental)
 
 GBOS ([Gradle Build Observability Schema](https://github.com/cdsap/build-observability-schema))
-is an **experimental, opt-in** feature. When Develocity is available and GBOS is
-enabled, canonical GBOS observations replace the legacy `testProcess.*` custom
-values; scan tags are unchanged. There is no separate GBOS Develocity switch.
+is an **experimental, opt-in** feature. When Develocity is available and
+`infoTestProcess.gbos.develocity.enabled=true`, canonical GBOS observations replace
+the legacy `testProcess.*` custom values; scan tags are unchanged.
 
 The projection emits canonical observations as repeated `gbos.v1.observation`
 custom values. Any PID, task path, or test executor identity is stored inside the
@@ -133,6 +135,16 @@ infoTestProcess {
     }
 }
 ```
+
+The projection has its own property and extension flag:
+
+```properties
+infoTestProcess.gbos.develocity.enabled=true
+```
+
+Gradle properties are conventions; an explicitly assigned extension value wins
+when both are set. Both GBOS flags default to `false`, and legacy output is
+preserved when both are disabled.
 
 When disabled, no GBOS files are written and legacy output is unchanged. The JSON
 sink writes a GBOS report envelope to `${rootDir}/build/info-test-process/gbos.json`:
@@ -180,8 +192,10 @@ replaced by GBOS JSON.
 
 Generated GBOS examples are validated in CI against the released
 `build-observability-schema` Maven Central contract (test-only; not a runtime
-dependency). See [docs/gbos.md](docs/gbos.md) for opt-in flags, compatibility
-rules, and how GBOS replaces legacy Develocity custom values.
+dependency). The producer uses GBOS core `0.0.7`. Schema/core updates must remain
+backward-compatible within the supported contract, update the published-schema
+validation tests first, and preserve legacy output when both GBOS opt-ins are
+disabled. See [docs/gbos.md](docs/gbos.md) for opt-in flags and compatibility rules.
 
 #### Scan tags
 

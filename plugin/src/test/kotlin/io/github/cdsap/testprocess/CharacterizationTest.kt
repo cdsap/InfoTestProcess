@@ -193,11 +193,11 @@ class CharacterizationTest {
     }
 
     @Test
-    fun gbosOptInReplacesLegacyDevelocityCustomValues() {
+    fun gbosDevelocityOptInReplacesLegacyDevelocityCustomValues() {
         val project = consumerProject(
             "gbos-opt-in",
             listOf("com.gradle.develocity", "io.github.cdsap.testprocess"),
-            gradleProperties = "infoTestProcess.gbos.enabled=true"
+            gradleProperties = "infoTestProcess.gbos.develocity.enabled=true"
         )
 
         val lines = pluginConsoleLines(run(project))
@@ -205,6 +205,22 @@ class CharacterizationTest {
         assertTrue(lines.any { it.startsWith("SCAN-VALUE gbos.") })
         assertTrue(lines.none { it.startsWith("SCAN-VALUE testProcess.") })
         assertEquals(EXPECTED_TAGS.map { "SCAN-TAG $it" }, lines.filter { it.startsWith("SCAN-TAG ") })
+    }
+
+    @Test
+    fun gbosFileOptInLeavesLegacyDevelocityValuesUnchanged() {
+        val project = consumerProject(
+            "gbos-files-only",
+            listOf("com.gradle.develocity", "io.github.cdsap.testprocess"),
+            gradleProperties = "infoTestProcess.gbos.enabled=true"
+        )
+
+        val lines = pluginConsoleLines(run(project))
+
+        assertTrue(lines.any { it.startsWith("SCAN-VALUE testProcess.") })
+        assertTrue(lines.none { it.startsWith("SCAN-VALUE gbos.") })
+        assertTrue(File(project, "build/info-test-process/gbos.json").isFile)
+        assertTrue(File(project, "build/info-test-process/gbos.ndjson").isFile)
     }
 
     @Test

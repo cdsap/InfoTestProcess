@@ -5,7 +5,11 @@ import org.junit.Test
 
 class GbosOptInTest {
     @Test
-    fun exposesSingleFileSinkOptInProperty() {
+    fun exposesIndependentFileAndDevelocityOptInProperties() {
         assertEquals("infoTestProcess.gbos.enabled", GbosOptIn.PROPERTY_ENABLED)
+        assertEquals(
+            "infoTestProcess.gbos.develocity.enabled",
+            GbosOptIn.PROPERTY_DEVELOCITY_ENABLED
+        )
     }
 }

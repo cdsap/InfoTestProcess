@@ -96,7 +96,7 @@ class InfoTestProcessPlugin : Plugin<Settings> {
                         .register(
                             target.extensions.getByType(DevelocityConfiguration::class.java),
                             reportProvider,
-                            infoTestProcess.gbos.enabled,
+                            infoTestProcess.gbos.develocity.enabled,
                         )
                 }
             }
