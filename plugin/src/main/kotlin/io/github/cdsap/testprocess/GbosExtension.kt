@@ -36,8 +36,20 @@ abstract class DevelocityReportingExtension {
 /**
  * Opt-in GBOS configuration. Defaults to disabled.
  *
- * [enabled] turns on both local file sinks (JSON + NDJSON).
+ * [enabled] turns on both local file sinks (JSON + NDJSON). The nested
+ * [GbosDevelocityExtension] controls the independent Build Scan projection.
  */
-abstract class GbosExtension {
+abstract class GbosExtension @Inject constructor(objects: ObjectFactory) {
+    abstract val enabled: Property<Boolean>
+
+    val develocity: GbosDevelocityExtension =
+        objects.newInstance(GbosDevelocityExtension::class.java)
+
+    fun develocity(action: Action<in GbosDevelocityExtension>) {
+        action.execute(develocity)
+    }
+}
+
+abstract class GbosDevelocityExtension {
     abstract val enabled: Property<Boolean>
 }
