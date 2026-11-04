@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.github.cdsap"
-version = "2.1.0"
+version = "2.2.1"
 
 // Keep historical Maven coordinates after moving sources out of the root project.
 base {

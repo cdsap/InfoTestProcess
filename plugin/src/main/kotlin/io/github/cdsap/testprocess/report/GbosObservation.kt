@@ -30,7 +30,7 @@ internal object GbosObservations {
     const val ATTR_GC_NAME = "jvm.gc.name"
 
     const val PRODUCER_NAME = "info-test-process"
-    private const val PRODUCER_VERSION = "2.1.0"
+    private const val PRODUCER_VERSION = "2.2.1"
     private const val PROCESS_SCOPE = "jvm.process"
     private const val TEST_WORKER_ROLE = "test-worker"
 

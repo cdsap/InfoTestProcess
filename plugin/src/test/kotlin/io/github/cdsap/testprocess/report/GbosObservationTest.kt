@@ -41,7 +41,7 @@ class GbosObservationTest {
         val entity = observations.single { it.aggregationScope == "entity" }
 
         assert(entity.schemaVersion == "1.0.0")
-        assert(entity.producer == GbosProducer(name = "info-test-process", version = "2.1.0"))
+        assert(entity.producer == GbosProducer(name = "info-test-process", version = "2.2.1"))
         assert(entity.scope == "jvm.process")
         assert(entity.attributes[GbosObservations.ATTR_PROCESS_PID] == GbosAttributeValue.Integer(13402L))
         assert(entity.attributes[GbosObservations.ATTR_PROCESS_ROLE] == GbosAttributeValue.Text("test-worker"))

@@ -96,7 +96,7 @@ class GbosSchemaValidationTest {
                 put("schemaVersion", "1.0.0")
                 put("producer", buildJsonObject {
                     put("name", "info-test-process")
-                    put("version", "2.1.0")
+                    put("version", "2.2.1")
                 })
                 observation.forEach { (key, value) -> put(key, value) }
             }
@@ -117,7 +117,7 @@ class GbosSchemaValidationTest {
             put("schemaVersion", "1.0.0")
             put("producer", buildJsonObject {
                 put("name", "info-test-process")
-                put("version", "2.1.0")
+                put("version", "2.2.1")
             })
             put(
                 "observations",

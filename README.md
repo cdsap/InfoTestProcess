@@ -23,7 +23,7 @@ Apply the plugin in your main `settings.gradle(.kts)`:
 
 ```kotlin
 plugins {
-    id("io.github.cdsap.testprocess") version "2.1.0"
+    id("io.github.cdsap.testprocess") version "2.2.1"
 }
 ```
 
@@ -182,7 +182,7 @@ sink writes a GBOS report envelope to `${rootDir}/build/info-test-process/gbos.j
       "schemaVersion": "1.0.0",
       "producer": {
         "name": "info-test-process",
-        "version": "2.1.0"
+        "version": "2.2.1"
       },
       "scope": "jvm.process",
       "aggregationScope": "entity",
