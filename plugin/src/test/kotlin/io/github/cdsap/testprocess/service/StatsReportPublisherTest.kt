@@ -1,6 +1,5 @@
 package io.github.cdsap.testprocess.service
 
-import io.github.cdsap.testprocess.agent.WorkerStateReader
 import io.github.cdsap.testprocess.agent.WorkerRegistryEntry
 import io.github.cdsap.testprocess.agent.WorkerRegistrySnapshot
 import io.github.cdsap.testprocess.model.Stats
