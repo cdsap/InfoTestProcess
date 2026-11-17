@@ -26,7 +26,7 @@ class AggregatorTest {
     )
 
     @Test
-    fun workerReportInputProjectsWorkersIncludingMissingRuntimeStats() {
+    fun workerReportProjectorProjectsWorkersIncludingMissingRuntimeStats() {
         val processes = mapOf(
             10L to TestProcess(task = ":a:test", executor = "E1", max = "512m"),
             20L to TestProcess(task = ":b:test", executor = "E2", max = "1g")
@@ -50,7 +50,7 @@ class AggregatorTest {
             // pid 20 intentionally omitted → missing snapshot
         )
 
-        val workers = WorkerReportInput.from(processes, runtimeStats)
+        val workers = WorkerReportProjector.from(processes, runtimeStats)
 
         assert(workers.size == 2)
         val live = workers.single { it.pid == 10L }
